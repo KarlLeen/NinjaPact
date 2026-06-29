@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>承诺 #13 · 待质押</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell screen">
+    <header class="top-nav" style="border: none; margin-bottom: var(--sp-3);">
+      <button type="button" class="nav-back" onclick="location.href='dashboard.html'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        返回
+      </button>
+      <span class="state-badge s-funding">待资金</span>
+    </header>
+
+    <div class="summary-card">
+      <span class="kind-tag mode-solo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>
+        自律打卡 · 承诺 #13
+      </span>
+      <h1 class="title">每周三次晨跑 5 公里并上传路线截图</h1>
+      <div class="divider" style="margin: var(--sp-3) 0;"></div>
+      <div class="stat-row"><span class="subtitle">需质押</span><span class="stat-value" style="color: var(--gold);">150 mUSD</span></div>
+      <div class="stat-row"><span class="subtitle">打卡次数</span><span class="stat-value">12 次</span></div>
+      <div class="stat-row"><span class="subtitle">判负阈值</span><span class="stat-value">3 次失败</span></div>
+    </div>
+
+    <div class="status-panel accent">
+      <div class="status-mark gold">质</div>
+      <h2>承诺已创建，质押尚未完成</h2>
+      <p class="status-lede">确认质押后承诺才生效，Judge 才会开始计次。测试网可先领取 mUSD。</p>
+      <button type="button" class="btn btn-ghost btn-block" style="margin-bottom: var(--sp-2);">领取测试 mUSD（10000）</button>
+      <button type="button" class="btn btn-primary btn-block">确认质押 150 mUSD</button>
+    </div>
+  </div>
+</body>
+</html>

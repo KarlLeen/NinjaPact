@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>对赌 #15 · 忍者之约</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell screen">
+    <header class="top-nav" style="border: none; margin-bottom: var(--sp-3);">
+      <button type="button" class="nav-back" onclick="location.href='dashboard.html'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        返回
+      </button>
+      <span class="state-badge s-active">进行中</span>
+    </header>
+
+    <div class="detail-layout">
+      <div class="detail-main">
+        <div class="detail-hero reveal mode-bet-hero">
+          <div class="detail-meta-row">
+            <span class="kind-tag mode-bet">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="5" y="5" width="14" height="14" rx="2"/><circle cx="9" cy="9" r="1" fill="currentColor"/><circle cx="15" cy="15" r="1" fill="currentColor"/></svg>
+              公共事件对赌 · #15
+            </span>
+            <span class="stake-tag">奖池 400 mUSD</span>
+          </div>
+          <h1 class="title">2026 年 7 月 15 日前，Injective 主网 TVL 是否突破 5 亿美元？</h1>
+
+          <div class="bet-sides reveal">
+            <div class="bet-side yes">
+              <p class="label">发起方 · 我</p>
+              <p class="bet-side-label">YES · 会发生</p>
+              <p class="bet-side-stake mono">200 mUSD</p>
+            </div>
+            <div class="bet-vs" aria-hidden="true">VS</div>
+            <div class="bet-side no">
+              <p class="label">对手</p>
+              <p class="bet-side-label">NO · 不会发生</p>
+              <p class="bet-side-stake mono">200 mUSD</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="result-banner reveal" style="border-color: var(--gold-line); background: linear-gradient(135deg, var(--gold-dim), transparent 60%), var(--surface);">
+          <div class="result-icon" style="background: var(--gold-dim); color: var(--gold); box-shadow: inset 0 0 0 1px var(--gold-line);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div style="flex: 1;">
+            <p class="result-title">双方已押注，等待裁定</p>
+            <p class="result-sub">截止 2026-07-15 23:59 · 到期由 AI 裁判查证 YES/NO 并链上结算</p>
+          </div>
+        </div>
+
+        <section class="checklist-card reveal" aria-label="对赌规则">
+          <div class="checkin-history-head">
+            <h2>裁定规则</h2>
+          </div>
+          <ul class="accept-list rules-list">
+            <li class="accept-item">
+              <span class="accept-num" aria-hidden="true">1</span>
+              <span>事件必须可客观查证（公开数据源、链上指标等）</span>
+            </li>
+            <li class="accept-item">
+              <span class="accept-num" aria-hidden="true">2</span>
+              <span>截止日由 AI 裁判对照公开事实裁定 YES 或 NO</span>
+            </li>
+            <li class="accept-item">
+              <span class="accept-num" aria-hidden="true">3</span>
+              <span>赢家通吃双方质押；裁判超时则各退各（安全网）</span>
+            </li>
+          </ul>
+        </section>
+
+        <div class="witness-card mobile-only reveal">
+          <p class="title-line">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            对手邀请
+          </p>
+          <p class="subtitle" style="font-size: 13px; margin-bottom: 12px;">对手已加入。若仍在等待，可复制链接邀请第二位参与者。</p>
+          <button type="button" class="btn btn-ghost btn-block btn-sm" id="copy-bet-invite">复制邀请链接</button>
+        </div>
+      </div>
+
+      <aside class="detail-sidebar desktop-only">
+        <div class="sidebar-card reveal">
+          <p class="label" style="margin-bottom: var(--sp-3);">对赌信息</p>
+          <dl class="contract-dl">
+            <div class="contract-row">
+              <dt>单方押注</dt>
+              <dd class="mono-gold">200 mUSD</dd>
+            </div>
+            <div class="contract-row">
+              <dt>奖池</dt>
+              <dd class="mono-gold">400 mUSD</dd>
+            </div>
+            <div class="contract-row">
+              <dt>裁定截止</dt>
+              <dd class="mono" style="color: var(--text-dim);">2026-07-15</dd>
+            </div>
+            <div class="contract-row">
+              <dt>发起方</dt>
+              <dd class="mono" style="color: var(--jade); font-size: 11px;">YES（我）</dd>
+            </div>
+            <div class="contract-row">
+              <dt>对手</dt>
+              <dd class="mono" style="color: var(--fail); font-size: 11px;">NO · 0x3f1a…8c02</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="witness-card reveal">
+          <p class="title-line">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            与自律打卡不同
+          </p>
+          <p class="subtitle" style="font-size: 13px;">对赌会罚没输家质押；自律打卡失败不罚没，只影响段位与荣誉。</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      if ('IntersectionObserver' in window) {
+        var obs = new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            if (e.isIntersecting) { e.target.classList.add('is-visible'); obs.unobserve(e.target); }
+          });
+        }, { threshold: 0.08 });
+        document.querySelectorAll('.reveal').forEach(function (el, i) {
+          el.style.transitionDelay = (i * 60) + 'ms';
+          obs.observe(el);
+        });
+      }
+
+      var btn = document.getElementById('copy-bet-invite');
+      if (btn) {
+        btn.addEventListener('click', function () {
+          btn.textContent = '已复制链接';
+          setTimeout(function () { btn.textContent = '复制邀请链接'; }, 2000);
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

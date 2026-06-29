@@ -1,0 +1,28 @@
+# NinjaPact — Cursor rules
+
+You are continuing an in-flight project. Before any task, read these in order:
+1. `HANDOFF.md`  — current state, what's done, what's next, how to deploy, how to reach
+   Injective agent tools + reference docs. THIS IS THE MOST IMPORTANT FILE.
+2. `CLAUDE.md`   — binding engineering + architecture rules (the "铁律").
+3. `NinjaPact_MVP开发文档.md` — the product constitution (wins on any conflict).
+
+Hard rules:
+- **Chain is the only source of truth.** Frontend reads chain directly; backend is stateless.
+- **Test-first for contracts.** Every state transition / permission / boundary gets a Foundry
+  test; `forge test` green locally before touching testnet. Keep foundry.toml's
+  `optimizer=true, optimizer_runs=1, via_ir=true` (contract-size limit).
+- **Never invent Injective-specific APIs.** Generic EVM/Solidity is fine, but for Injective
+  (chainId 1439, RPC, gas, addresses, `@injective/agent-sdk`, ERC-8004) verify against the
+  official docs/source first (HANDOFF.md §8). If you can't verify, stop and ask.
+- **Judge has zero fund authority** beyond signing verdicts; escrow may only ever pay the
+  payer (refund) or the deliverer fixed at creation — never a Judge-chosen third party.
+- UI text + product copy are **Chinese**, ninja theme; tiers use generic belt colors, never
+  Naruto names.
+- Don't redeploy the contract or push to the live site without need; deploying orphans all
+  on-chain commitments and is currently done via the gist→Tencent-console trick (SSH to the
+  box is blocked — see HANDOFF.md §7). Never burst SSH connections.
+- One ticket per session; don't opportunistically refactor or pre-build POOL/MILESTONE.
+
+Current immediate work (see HANDOFF.md §6): (1) deploy the deliver-jobs Dashboard fix,
+(2) raise the 413 upload limits (express 50mb + nginx 50m), (3) on-chain reputation writes
+(verify the ERC-8004 ReputationRegistry write API first).

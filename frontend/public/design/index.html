@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>忍者之约 — 设计预览</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="launcher">
+    <header class="launcher-hero">
+      <div class="mark" aria-hidden="true"><span class="mark-char">忍</span></div>
+      <p class="label" style="margin-bottom: 8px;">NinjaPact · 视觉改版</p>
+      <h1 class="display" style="margin-bottom: 12px;">忍者之约</h1>
+      <p class="subtitle" style="max-width: 42ch;">
+        暗色道场账本 · 玉绿主色 · 无 emoji。下列屏幕为独立 HTML 原型，可逐页预览交互与排版。
+      </p>
+    </header>
+
+    <p class="label section-label">核心流程</p>
+    <div class="screen-grid">
+      <a class="screen-link" href="landing.html">
+        <div>
+          <div class="screen-link-title">入口 · 登录</div>
+          <div class="screen-link-desc">品牌印记、立约 CTA、测试网说明</div>
+        </div>
+        <span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span>
+      </a>
+      <a class="screen-link" href="dashboard.html">
+        <div>
+          <div class="screen-link-title">我的承诺</div>
+          <div class="screen-link-desc">钱包栏、承诺卡片、空状态、创建 FAB</div>
+        </div>
+        <span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span>
+      </a>
+      <a class="screen-link" href="create-pact.html">
+        <div>
+          <div class="screen-link-title">创建立约</div>
+          <div class="screen-link-desc">三模式切换、AI 对话、参数滑块</div>
+        </div>
+        <span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span>
+      </a>
+      <a class="screen-link" href="pact-detail.html">
+        <div>
+          <div class="screen-link-title">自律打卡 · 详情</div>
+          <div class="screen-link-desc">进度环、打卡记录、今日打卡、见证邀请</div>
+        </div>
+        <span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span>
+      </a>
+      <a class="screen-link" href="escrow-detail.html">
+        <div>
+          <div class="screen-link-title">交付托管 · 委托人验收</div>
+          <div class="screen-link-desc">阶段条、demo 验收、修改意见、验收清单</div>
+        </div>
+        <span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span>
+      </a>
+      <a class="screen-link" href="escrow-deliver.html">
+        <div>
+          <div class="screen-link-title">交付托管 · 交付方提交</div>
+          <div class="screen-link-desc">上传源码、demo 链接、对照验收标准</div>
+        </div>
+        <span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span>
+      </a>
+      <a class="screen-link" href="bet-detail.html">
+        <div>
+          <div class="screen-link-title">公共事件对赌 · 详情</div>
+          <div class="screen-link-desc">YES/NO 双方、奖池、裁定规则、截止日</div>
+        </div>
+        <span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span>
+      </a>
+    </div>
+
+    <p class="label section-label">中间状态 · 自律打卡</p>
+    <div class="screen-grid">
+      <a class="screen-link" href="pact-fund.html"><div><div class="screen-link-title">待质押</div><div class="screen-link-desc">承诺已创建，尚未确认质押</div></div><span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span></a>
+      <a class="screen-link" href="pact-wait-judge.html"><div><div class="screen-link-title">等待裁决</div><div class="screen-link-desc">已提交打卡，Judge 审核中</div></div><span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span></a>
+      <a class="screen-link" href="pact-locked.html"><div><div class="screen-link-title">锁定中</div><div class="screen-link-desc">失败达阈值，6 个月锁定 + 救赎</div></div><span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span></a>
+      <a class="screen-link" href="pact-claimable.html"><div><div class="screen-link-title">可领取</div><div class="screen-link-desc">锁定期满，可退还质押</div></div><span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span></a>
+      <a class="screen-link" href="pact-success.html"><div><div class="screen-link-title">已成功</div><div class="screen-link-desc">全部通过，质押已退还</div></div><span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span></a>
+    </div>
+
+    <p class="label section-label">中间状态 · 交付托管</p>
+    <div class="screen-grid">
+      <a class="screen-link" href="escrow-fund.html"><div><div class="screen-link-title">待托管资金</div><div class="screen-link-desc">委托已创建，尚未锁定 mUSD</div></div><span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span></a>
+      <a class="screen-link" href="escrow-wait-deliverer.html"><div><div class="screen-link-title">等待交付方接单</div><div class="screen-link-desc">已托管，复制邀请链接</div></div><span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span></a>
+      <a class="screen-link" href="escrow-wait-delivery.html"><div><div class="screen-link-title">等待首次交付</div><div class="screen-link-desc">交付方已接单，编写中</div></div><span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span></a>
+      <a class="screen-link" href="escrow-revision.html"><div><div class="screen-link-title">修改中 · 委托人</div><div class="screen-link-desc">已提修改意见，等重新交付</div></div><span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span></a>
+      <a class="screen-link" href="escrow-arbitration.html"><div><div class="screen-link-title">终局裁决中</div><div class="screen-link-desc">修改次数用尽，AI 终裁</div></div><span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span></a>
+      <a class="screen-link" href="escrow-settled-ok.html"><div><div class="screen-link-title">已验收放款</div><div class="screen-link-desc">验收通过，可下载源码</div></div><span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span></a>
+      <a class="screen-link" href="escrow-settled-refund.html"><div><div class="screen-link-title">已退款</div><div class="screen-link-desc">终裁未达标，本金退回</div></div><span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span></a>
+      <a class="screen-link" href="escrow-deliver-accept.html"><div><div class="screen-link-title">交付方 · 待接受</div><div class="screen-link-desc">通过邀请链接进入</div></div><span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span></a>
+      <a class="screen-link" href="escrow-deliver-wait-review.html"><div><div class="screen-link-title">交付方 · 待验收</div><div class="screen-link-desc">已提交，等委托人测 demo</div></div><span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span></a>
+      <a class="screen-link" href="escrow-deliver-revision.html"><div><div class="screen-link-title">交付方 · 重新交付</div><div class="screen-link-desc">收到修改意见，需重传</div></div><span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span></a>
+    </div>
+
+    <p class="label section-label">中间状态 · 公共事件对赌</p>
+    <div class="screen-grid">
+      <a class="screen-link" href="bet-wait-opponent.html"><div><div class="screen-link-title">等待对手加入</div><div class="screen-link-desc">发起方视角，复制邀请</div></div><span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span></a>
+      <a class="screen-link" href="bet-join.html"><div><div class="screen-link-title">对手接受页</div><div class="screen-link-desc">通过邀请链接进入，押注接受</div></div><span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span></a>
+      <a class="screen-link" href="bet-active.html"><div><div class="screen-link-title">双方押注 · 等裁定</div><div class="screen-link-desc">截止日前等待 AI 裁判</div></div><span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span></a>
+      <a class="screen-link" href="bet-settled-win.html"><div><div class="screen-link-title">裁定 · 你赢了</div><div class="screen-link-desc">赢家通吃奖池</div></div><span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span></a>
+      <a class="screen-link" href="bet-settled-lose.html"><div><div class="screen-link-title">裁定 · 你输了</div><div class="screen-link-desc">对手拿走奖池</div></div><span class="icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M9 18l6-6-6-6"/></svg></span></a>
+    </div>
+
+    <p class="label" style="margin-top: 32px; color: var(--text-muted);">
+      设计系统：墨底 #0B0E14 · 玉绿 #2FBE9A · 金 #D9B25A · 移动端 480px · 桌面端自适应
+    </p>
+  </div>
+</body>
+</html>

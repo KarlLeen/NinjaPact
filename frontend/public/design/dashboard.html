@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>我的承诺 · 忍者之约</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell screen">
+    <header class="top-nav">
+      <div class="top-nav-brand">
+        <div class="mark mark-sm" aria-hidden="true"><span class="mark-char">忍</span></div>
+        <span class="title" style="font-size: 20px;">我的承诺</span>
+      </div>
+      <div class="top-nav-actions">
+        <a href="create-pact.html" class="btn btn-primary btn-sm desktop-only btn-create">创建立约</a>
+        <a href="index.html" class="btn btn-ghost btn-sm">档案</a>
+        <button type="button" class="btn btn-ghost btn-sm">退出</button>
+      </div>
+    </header>
+
+    <div class="dash-toolbar">
+      <div class="wallet-bar" id="wallet-bar" role="button" tabindex="0" aria-label="复制钱包地址">
+        <div>
+          <div class="label" style="margin-bottom: 2px;">钱包地址</div>
+          <div class="mono" style="font-size: 13px; color: var(--text-dim);">0x5589…9Bd2c</div>
+        </div>
+        <span class="copy-hint" id="copy-hint">点击复制</span>
+      </div>
+
+      <button type="button" class="btn btn-ghost btn-sm" style="white-space: nowrap;">
+        领取测试 mUSD（10000）
+      </button>
+    </div>
+
+    <div class="stack pact-grid" id="pact-list">
+      <a href="pact-detail.html" class="card card-interactive">
+        <div class="card-head">
+          <div class="card-meta">
+            <div class="kind-tag mode-solo" style="margin-bottom: 6px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>
+              自律打卡 #12 · 200 mUSD
+            </div>
+            <div class="card-title">每天 7 点前完成 30 分钟力量训练并拍照</div>
+          </div>
+          <span class="state-badge s-active">进行中</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 42%;"></div>
+        </div>
+        <p class="label" style="text-transform: none; letter-spacing: 0;">打卡 5/12 · 通过 4 · 失败 1</p>
+      </a>
+
+      <a href="escrow-detail.html" class="card card-interactive">
+        <div class="card-head">
+          <div class="card-meta">
+            <div class="kind-tag mode-escrow" style="margin-bottom: 6px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M8 12h8M12 8v8"/><rect x="4" y="6" width="16" height="12" rx="2"/></svg>
+              交付托管 #8 · 800 mUSD
+            </div>
+            <div class="card-title">交付 Injective 前端集成模块，含 Privy 登录与合约读写的 demo</div>
+          </div>
+          <span class="state-badge s-phase">验收中</span>
+        </div>
+        <p class="label" style="text-transform: none; letter-spacing: 0;">交付方已提交 · 待你测试 demo</p>
+      </a>
+
+      <a href="bet-detail.html" class="card card-interactive">
+        <div class="card-head">
+          <div class="card-meta">
+            <div class="kind-tag mode-bet" style="margin-bottom: 6px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="5" y="5" width="14" height="14" rx="2"/><circle cx="9" cy="9" r="1" fill="currentColor"/><circle cx="15" cy="15" r="1" fill="currentColor"/></svg>
+              对赌 #15 · 奖池 400 mUSD
+            </div>
+            <div class="card-title">Injective 主网 TVL 是否在 7/15 前突破 5 亿美元？</div>
+          </div>
+          <span class="state-badge s-active">进行中</span>
+        </div>
+        <p class="label" style="text-transform: none; letter-spacing: 0;">我押 YES · 对手押 NO</p>
+      </a>
+
+      <p class="label section-label">中间状态示例</p>
+
+      <a href="pact-fund.html" class="card card-interactive">
+        <div class="card-head">
+          <div class="card-meta">
+            <div class="kind-tag mode-solo" style="margin-bottom: 6px;">自律打卡 #13 · 150 mUSD</div>
+            <div class="card-title">每周三次晨跑 5 公里并上传路线截图</div>
+          </div>
+          <span class="state-badge s-funding">待资金</span>
+        </div>
+        <p class="label" style="text-transform: none; letter-spacing: 0;">承诺已创建 · 待确认质押</p>
+      </a>
+
+      <a href="escrow-wait-deliverer.html" class="card card-interactive">
+        <div class="card-head">
+          <div class="card-meta">
+            <div class="kind-tag mode-escrow" style="margin-bottom: 6px;">交付托管 #10 · 500 mUSD</div>
+            <div class="card-title">交付 Privy 钱包 SDK 集成示例</div>
+          </div>
+          <span class="state-badge s-funding">等待入伙</span>
+        </div>
+        <p class="label" style="text-transform: none; letter-spacing: 0;">已托管 · 等待交付方接单</p>
+      </a>
+
+      <a href="bet-wait-opponent.html" class="card card-interactive">
+        <div class="card-head">
+          <div class="card-meta">
+            <div class="kind-tag mode-bet" style="margin-bottom: 6px;">对赌 #16 · 150 mUSD</div>
+            <div class="card-title">Solana 日活地址是否在 Q3 前超过 400 万？</div>
+          </div>
+          <span class="state-badge s-funding">等待入伙</span>
+        </div>
+        <p class="label" style="text-transform: none; letter-spacing: 0;">我押 YES · 等待对手加入</p>
+      </a>
+
+      <p class="label section-label">我接的交付</p>
+
+      <a href="escrow-deliver.html" class="card card-interactive">
+        <div class="card-head">
+          <div class="card-meta">
+            <div class="kind-tag mode-escrow" style="margin-bottom: 6px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M7 11l5 3 5-3M7 7h10v10H7z"/></svg>
+              我接的交付 #8
+            </div>
+            <div class="card-title">Injective 前端集成模块</div>
+          </div>
+          <span class="state-badge s-phase">编写中</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="empty-state" id="empty-state" hidden>
+      <div class="empty-icon" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 4h12v16H6z"/><path d="M9 8h6M9 12h4"/></svg>
+      </div>
+      <p class="subtitle">还没有承诺</p>
+      <p class="subtitle" style="font-size: 13px; margin-top: 8px;">立一个约，用质押换自律</p>
+    </div>
+  </div>
+
+  <a href="create-pact.html" class="fab" aria-label="创建立约">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25"><path d="M12 5v14M5 12h14"/></svg>
+  </a>
+
+  <script>
+    (function () {
+      var bar = document.getElementById('wallet-bar');
+      var hint = document.getElementById('copy-hint');
+      function copy() {
+        bar.classList.add('copied');
+        hint.textContent = '已复制';
+        setTimeout(function () {
+          bar.classList.remove('copied');
+          hint.textContent = '点击复制';
+        }, 2000);
+      }
+      bar.addEventListener('click', copy);
+      bar.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); copy(); }
+      });
+    })();
+  </script>
+</body>
+</html>

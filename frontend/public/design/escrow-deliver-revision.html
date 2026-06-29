@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>我接的交付 #8 · 重新交付</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell screen">
+    <header class="top-nav" style="border: none; margin-bottom: var(--sp-3);">
+      <button type="button" class="nav-back" onclick="location.href='dashboard.html'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        返回
+      </button>
+      <span class="state-badge s-phase">修改中</span>
+    </header>
+
+    <div class="summary-card">
+      <span class="kind-tag mode-escrow">我接的交付 #8</span>
+      <h1 class="title">Injective 前端集成模块</h1>
+    </div>
+
+    <div class="dispute-card">
+      <p class="label">委托人要求修改</p>
+      <p>demo 登录后链上读操作返回 403，请检查 RPC 端点配置；README 缺少本地 env 示例。</p>
+      <p class="subtitle" style="font-size: 12px; margin-top: var(--sp-2);">AI 参考：此异议在验收范围内（应修正）</p>
+    </div>
+
+    <div class="action-card">
+      <div class="action-card-head">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <h2>重新交付</h2>
+      </div>
+      <p class="subtitle" style="font-size: 13px; margin-bottom: var(--sp-4);">上传修正后的源码 zip + 更新 demo 链接。</p>
+      <label class="label" style="display: block; margin-bottom: 6px;">源码（.zip）</label>
+      <div class="upload-zone" style="margin-bottom: var(--sp-3);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <p>点击或拖拽上传 zip</p>
+      </div>
+      <label class="label" style="display: block; margin-bottom: 6px;">可测 demo 链接</label>
+      <input class="input" type="url" placeholder="https://your-demo.example.com" style="width: 100%; margin-bottom: var(--sp-4);" value="https://demo.np-test.app/inj-v2" />
+      <button type="button" class="btn btn-primary btn-block">提交重新交付</button>
+    </div>
+  </div>
+</body>
+</html>

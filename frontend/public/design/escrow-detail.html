@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>托管 #8 · 忍者之约</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell screen">
+    <header class="top-nav" style="border: none; margin-bottom: var(--sp-3);">
+      <button type="button" class="nav-back" onclick="location.href='dashboard.html'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        返回
+      </button>
+      <span class="state-badge s-phase">验收中</span>
+    </header>
+
+    <div class="detail-layout">
+      <div class="detail-main">
+        <div class="detail-hero reveal mode-escrow-hero">
+          <div class="detail-meta-row">
+            <span class="kind-tag mode-escrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M8 12h8M12 8v8"/><rect x="4" y="6" width="16" height="12" rx="2"/></svg>
+              交付托管 · 委托 #8
+            </span>
+            <span class="stake-tag">800 mUSD</span>
+          </div>
+          <h1 class="title">交付 Injective 前端集成模块，含 Privy 登录与合约读写的 demo</h1>
+          <p class="evidence-lede">验收标准：demo 可登录并完成一次链上读操作；源码 zip 含 README 与部署说明。</p>
+
+          <div class="phase-track" aria-label="托管阶段">
+            <div class="phase-step done"><span class="phase-dot"></span>托管</div>
+            <div class="phase-step done"><span class="phase-dot"></span>接单</div>
+            <div class="phase-step done"><span class="phase-dot"></span>交付</div>
+            <div class="phase-step active"><span class="phase-dot"></span>验收</div>
+            <div class="phase-step"><span class="phase-dot"></span>放款</div>
+          </div>
+        </div>
+
+        <div class="action-card reveal" id="review-card">
+          <div class="action-card-head">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            <h2>验收：测试 demo</h2>
+          </div>
+          <p class="subtitle" style="font-size: 13px; margin-bottom: var(--sp-4);">
+            对照验收标准实测；满意就放款，有问题就提修改意见。源码已托管，放款后才可下载。
+          </p>
+          <a href="#" class="btn btn-ghost btn-block" style="margin-bottom: var(--sp-3);" onclick="return false;">打开 demo 实测</a>
+          <div class="action-row" id="review-actions">
+            <button type="button" class="btn btn-primary" style="flex: 2;" id="btn-confirm">满意，放款</button>
+            <button type="button" class="btn btn-ghost" style="flex: 1;" id="btn-revise">提修改</button>
+          </div>
+          <div class="revise-panel panel-hidden" id="revise-panel">
+            <textarea class="input" rows="3" placeholder="具体说明哪里不符合验收标准…" style="width: 100%; resize: vertical; margin-bottom: var(--sp-3);"></textarea>
+            <p class="label" style="margin-bottom: var(--sp-3); text-transform: none;">剩余修改次数：1（提交将用掉 1 次）</p>
+            <div class="action-row">
+              <button type="button" class="btn btn-ghost" style="flex: 1;" id="btn-cancel-revise">取消</button>
+              <button type="button" class="btn btn-primary" style="flex: 2;">提交修改意见</button>
+            </div>
+          </div>
+        </div>
+
+        <section class="checklist-card reveal" aria-label="验收清单">
+          <div class="checkin-history-head">
+            <h2>可测验收清单</h2>
+            <span class="label" style="text-transform: none;">AI 生成</span>
+          </div>
+          <ul class="accept-list">
+            <li class="accept-item">
+              <span class="accept-check" aria-hidden="true"></span>
+              <span>Privy 登录流程可完成，钱包地址正确显示</span>
+            </li>
+            <li class="accept-item">
+              <span class="accept-check" aria-hidden="true"></span>
+              <span>合约读操作返回预期数据（至少一次成功调用）</span>
+            </li>
+            <li class="accept-item">
+              <span class="accept-check pending" aria-hidden="true"></span>
+              <span>README 含本地运行与 testnet 部署步骤</span>
+            </li>
+            <li class="accept-item">
+              <span class="accept-check pending" aria-hidden="true"></span>
+              <span>源码 zip 结构清晰，无 node_modules 打包</span>
+            </li>
+          </ul>
+        </section>
+
+        <div class="witness-card mobile-only reveal">
+          <p class="title-line">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            交付方邀请
+          </p>
+          <p class="subtitle" style="font-size: 13px; margin-bottom: 12px;">交付方已接单。如需换人，需先取消当前委托。</p>
+          <button type="button" class="btn btn-ghost btn-block btn-sm">复制交付邀请链接</button>
+        </div>
+      </div>
+
+      <aside class="detail-sidebar desktop-only">
+        <div class="sidebar-card reveal">
+          <p class="label" style="margin-bottom: var(--sp-3);">托管信息</p>
+          <dl class="contract-dl">
+            <div class="contract-row">
+              <dt>托管金额</dt>
+              <dd class="mono-gold">800 mUSD</dd>
+            </div>
+            <div class="contract-row">
+              <dt>交付方</dt>
+              <dd class="mono" style="color: var(--text-dim);">0x7a2f…c91e</dd>
+            </div>
+            <div class="contract-row">
+              <dt>修改次数</dt>
+              <dd>0 / 1 已用</dd>
+            </div>
+            <div class="contract-row">
+              <dt>交付时间</dt>
+              <dd class="mono" style="color: var(--text-dim);">06-28 14:20</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="sidebar-card reveal">
+          <p class="label" style="margin-bottom: var(--sp-3);">交付物</p>
+          <div class="delivery-meta">
+            <div class="delivery-row">
+              <span class="label" style="text-transform: none;">Demo</span>
+              <span class="mono" style="font-size: 11px; color: var(--jade);">已提交</span>
+            </div>
+            <div class="delivery-row">
+              <span class="label" style="text-transform: none;">源码</span>
+              <span class="mono" style="font-size: 11px; color: var(--text-muted);">放款后下载</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="witness-card reveal">
+          <p class="title-line">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            争议裁决
+          </p>
+          <p class="subtitle" style="font-size: 13px;">修改次数用尽后，可申请 AI 旗舰对照原始验收标准做终局裁决。</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      if ('IntersectionObserver' in window) {
+        var obs = new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            if (e.isIntersecting) { e.target.classList.add('is-visible'); obs.unobserve(e.target); }
+          });
+        }, { threshold: 0.08 });
+        document.querySelectorAll('.reveal').forEach(function (el, i) {
+          el.style.transitionDelay = (i * 60) + 'ms';
+          obs.observe(el);
+        });
+      } else {
+        document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('is-visible'); });
+      }
+
+      var btnRevise = document.getElementById('btn-revise');
+      var btnCancel = document.getElementById('btn-cancel-revise');
+      var panel = document.getElementById('revise-panel');
+      var actions = document.getElementById('review-actions');
+      if (btnRevise && panel) {
+        btnRevise.addEventListener('click', function () {
+          panel.classList.remove('panel-hidden');
+          actions.classList.add('panel-hidden');
+        });
+      }
+      if (btnCancel && panel) {
+        btnCancel.addEventListener('click', function () {
+          panel.classList.add('panel-hidden');
+          actions.classList.remove('panel-hidden');
+        });
+      }
+      var btnConfirm = document.getElementById('btn-confirm');
+      if (btnConfirm) {
+        btnConfirm.addEventListener('click', function () {
+          btnConfirm.textContent = '放款处理中…';
+          btnConfirm.disabled = true;
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

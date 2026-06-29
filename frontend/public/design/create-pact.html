@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>创建立约 · 忍者之约</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell screen screen-create">
+    <header class="top-nav">
+      <button type="button" class="nav-back" onclick="history.back()" aria-label="返回上一页">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+        返回
+      </button>
+      <span class="title top-nav-title">创建立约</span>
+      <span class="nav-spacer" aria-hidden="true"></span>
+    </header>
+
+    <div class="mode-tabs" role="tablist" aria-label="立约模式">
+      <button type="button" class="mode-tab active" data-mode="solo" role="tab" aria-selected="true" id="tab-solo" aria-controls="panel-solo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>
+        自律打卡
+      </button>
+      <button type="button" class="mode-tab" data-mode="escrow" role="tab" aria-selected="false" id="tab-escrow" aria-controls="panel-escrow">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="M8 12h8M7 7h10v10H7z"/></svg>
+        交付托管
+      </button>
+      <button type="button" class="mode-tab" data-mode="bet" role="tab" aria-selected="false" id="tab-bet" aria-controls="panel-bet">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/><circle cx="9" cy="9" r="1" fill="currentColor"/><circle cx="15" cy="15" r="1" fill="currentColor"/></svg>
+        对赌
+      </button>
+    </div>
+
+    <div id="panel-solo" role="tabpanel" aria-labelledby="tab-solo">
+      <div class="create-split">
+        <div class="create-chat-col">
+          <div class="chat-log" id="chat-log" aria-label="AI 对话">
+            <div class="chat-row">
+              <span class="bot-avatar" aria-hidden="true">忍</span>
+              <div class="bubble-bot">你好，忍者。
+
+你想立什么约？用一句话描述目标，我会帮你变成可验收的承诺。
+
+例如：「我想坚持健身」「每天背单词」</div>
+            </div>
+            <div class="chat-row user">
+              <div class="bubble-user">每天 7 点前完成 30 分钟力量训练并拍照</div>
+            </div>
+            <div class="chat-row">
+              <span class="bot-avatar" aria-hidden="true">忍</span>
+              <div class="bubble-bot">目标清晰：早起力量训练 + 照片证据。建议 12 天周期、质押 200 mUSD，失败 3 次进入锁定。右侧可微调参数。</div>
+            </div>
+          </div>
+
+          <div class="chat-compose">
+            <label class="sr-only" for="chat-input">描述你的目标</label>
+            <input type="text" id="chat-input" class="input" placeholder="描述你的目标…" />
+            <button type="button" class="btn btn-primary btn-sm">发送</button>
+          </div>
+        </div>
+
+        <div class="create-side-col">
+          <div class="card card-jade proposal-panel">
+            <p class="label label-accent-jade">承诺摘要</p>
+            <dl>
+              <div class="proposal-row"><dt>目标</dt><dd>每天 7 点前 30 分钟力量训练</dd></div>
+              <div class="proposal-row"><dt>证据</dt><dd>健身房或居家训练现场照片</dd></div>
+            </dl>
+
+            <p class="label proposal-section-label label-normal">拖动调整参数</p>
+
+            <div class="slider-row">
+              <div class="slider-head"><span>周期</span><strong><span id="v-days">12</span> 天</strong></div>
+              <input type="range" class="np-slider" id="s-days" min="7" max="30" value="12" aria-label="周期天数" />
+            </div>
+            <div class="slider-row">
+              <div class="slider-head"><span>打卡次数</span><strong><span id="v-checks">12</span> 次</strong></div>
+              <input type="range" class="np-slider" id="s-checks" min="1" max="30" value="12" aria-label="打卡次数" />
+            </div>
+            <div class="slider-row">
+              <div class="slider-head"><span>质押</span><strong><span id="v-stake">200</span> mUSD</strong></div>
+              <input type="range" class="np-slider" id="s-stake" min="10" max="1000" step="10" value="200" aria-label="质押金额" />
+            </div>
+
+            <div class="toggle-row">
+              <span id="witness-label">邀请一位见证人</span>
+              <button type="button" class="toggle on" id="witness-toggle" aria-labelledby="witness-label" aria-pressed="true"></button>
+            </div>
+
+            <button type="button" class="btn btn-primary btn-block proposal-cta">确认并上链</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="panel-escrow" class="panel-hidden" role="tabpanel" aria-labelledby="tab-escrow" hidden>
+      <div class="card mode-form">
+        <p class="label label-accent-jade">代码交付托管</p>
+        <p class="subtitle">委托人托管资金，交付方提交源码与 demo，AI + 委托人验收后放款。</p>
+
+        <div class="form-field">
+          <label class="label" for="escrow-goal">开发需求</label>
+          <textarea id="escrow-goal" class="input input-md" rows="4" placeholder="例如：做一个 Todo 网页应用，支持增删改与本地存储"></textarea>
+        </div>
+
+        <div class="form-field">
+          <label class="label" for="escrow-accept">可测验收标准</label>
+          <textarea id="escrow-accept" class="input input-lg" rows="6" placeholder="逐条写、可在 demo 上测：&#10;· 能新增任务&#10;· 能勾选完成&#10;· 刷新后数据还在&#10;· 手机端布局正常"></textarea>
+        </div>
+
+        <div class="slider-row">
+          <div class="slider-head"><span>托管金额</span><strong><span id="v-escrow-amt">200</span> mUSD</strong></div>
+          <input type="range" class="np-slider" id="s-escrow-amt" min="10" max="2000" step="10" value="200" aria-label="托管金额" />
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span>修改次数</span><strong><span id="v-escrow-rev">2</span> 次</strong></div>
+          <input type="range" class="np-slider" id="s-escrow-rev" min="0" max="5" value="2" aria-label="修改次数" />
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span>截止天数</span><strong><span id="v-escrow-days">7</span> 天</strong></div>
+          <input type="range" class="np-slider" id="s-escrow-days" min="1" max="30" value="7" aria-label="截止天数" />
+        </div>
+
+        <button type="button" class="btn btn-primary btn-block mode-form-submit">托管 200 mUSD 并创建委托</button>
+      </div>
+    </div>
+
+    <div id="panel-bet" class="panel-hidden" role="tabpanel" aria-labelledby="tab-bet" hidden>
+      <div class="card card-gold mode-form">
+        <p class="label label-accent-gold">公共事件对赌</p>
+        <p class="subtitle">双方等额押注，Judge 在截止日裁定结果并链上结算。</p>
+
+        <div class="form-field">
+          <label class="label" for="bet-event">对赌事件（可客观查证的 YES/NO 问题）</label>
+          <textarea id="bet-event" class="input input-md" rows="4" placeholder="例如：Drake 会在 2026 年 10 月 1 日前发布新专辑吗？"></textarea>
+        </div>
+
+        <p class="label" style="margin-bottom: 8px;">我押哪一边</p>
+        <div class="bet-side-tabs" role="group" aria-label="押注方向" style="margin-bottom: var(--sp-4);">
+          <button type="button" class="bet-side-tab active" data-side="yes" aria-pressed="true">YES 会发生</button>
+          <button type="button" class="bet-side-tab" data-side="no" aria-pressed="false">NO 不会发生</button>
+        </div>
+
+        <div class="slider-row">
+          <div class="slider-head"><span>押注额（双方等额）</span><strong><span id="v-bet-amt">100</span> mUSD</strong></div>
+          <input type="range" class="np-slider" id="s-bet-amt" min="10" max="2000" step="10" value="100" aria-label="押注金额" />
+        </div>
+
+        <div class="form-field bet-deadline-field">
+          <label class="label" for="bet-deadline">裁定截止日</label>
+          <input type="date" id="bet-deadline" class="input input-block" />
+        </div>
+
+        <button type="button" class="btn btn-gold btn-block mode-form-submit" style="background: var(--gold); color: #1A1505;">押 100 mUSD 并创建对赌</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var tabs = document.querySelectorAll('.mode-tab');
+      var panels = { solo: 'panel-solo', escrow: 'panel-escrow', bet: 'panel-bet' };
+
+      tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          var mode = tab.getAttribute('data-mode');
+          tabs.forEach(function (t) {
+            t.classList.toggle('active', t === tab);
+            t.setAttribute('aria-selected', t === tab ? 'true' : 'false');
+          });
+          Object.keys(panels).forEach(function (k) {
+            var panel = document.getElementById(panels[k]);
+            var show = k === mode;
+            panel.classList.toggle('panel-hidden', !show);
+            panel.hidden = !show;
+          });
+        });
+      });
+
+      function bindSlider(id, outId) {
+        var s = document.getElementById(id);
+        var o = document.getElementById(outId);
+        if (!s || !o) return;
+        s.addEventListener('input', function () { o.textContent = s.value; });
+      }
+      bindSlider('s-days', 'v-days');
+      bindSlider('s-checks', 'v-checks');
+      bindSlider('s-stake', 'v-stake');
+      bindSlider('s-escrow-amt', 'v-escrow-amt');
+      bindSlider('s-escrow-rev', 'v-escrow-rev');
+      bindSlider('s-escrow-days', 'v-escrow-days');
+      bindSlider('s-bet-amt', 'v-bet-amt');
+
+      document.querySelectorAll('.bet-side-tab').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          document.querySelectorAll('.bet-side-tab').forEach(function (b) {
+            var active = b === btn;
+            b.classList.toggle('active', active);
+            b.setAttribute('aria-pressed', active ? 'true' : 'false');
+          });
+        });
+      });
+
+      var deadline = document.getElementById('bet-deadline');
+      if (deadline) {
+        var d = new Date(Date.now() + 30 * 86400000);
+        deadline.value = d.toISOString().slice(0, 10);
+        deadline.min = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+      }
+
+      var wt = document.getElementById('witness-toggle');
+      wt.addEventListener('click', function () {
+        wt.classList.toggle('on');
+        wt.setAttribute('aria-pressed', wt.classList.contains('on') ? 'true' : 'false');
+      });
+    })();
+  </script>
+</body>
+</html>

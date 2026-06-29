@@ -1,0 +1,12 @@
+{
+  "name": "忍者之约",
+  "short_name": "忍者约",
+  "description": "用自律立约，用代码守诺",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0E14",
+  "theme_color": "#0B0E14",
+  "icons": [
+    { "src": "/ninja.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+:root{
+  /* ── Surface / ink ── */
+  --np-bg:#0B0E14;
+  --np-surface:#11151E;
+  --np-card:#161B26;
+  --np-card-raised:#1C2330;
+  --np-border:#232C3B;
+  --np-border-strong:#2E3A4D;
+
+  /* ── Brand ── */
+  --np-jade:#2FBE9A;        /* primary · active · success */
+  --np-jade-dim:rgba(47,190,154,.14);
+  --np-jade-line:rgba(47,190,154,.45);
+  --np-gold:#D9B25A;        /* honor · locked · judge */
+  --np-gold-dim:rgba(217,178,90,.14);
+  --np-gold-line:rgba(217,178,90,.45);
+
+  /* ── Semantic ── */
+  --np-success:#2FBE9A;
+  --np-locked:#D9B25A;
+  --np-fail:#E0584F;
+  --np-fail-dim:rgba(224,88,79,.14);
+  --np-info:#6E8BB5;        /* escrow phases / neutral cool */
+  --np-info-dim:rgba(110,139,181,.14);
+  --np-cancel:#5E6B7E;
+
+  /* ── Text ── */
+  --np-text:#EAEFF6;
+  --np-text-dim:#9AA7BA;
+  --np-text-muted:#5E6B7E;
+
+  /* ── Type ── */
+  --np-sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --np-mono:ui-monospace,"SF Mono","JetBrains Mono","Roboto Mono",Menlo,monospace;
+
+  /* ── Spacing ── */
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px; --sp-8:32px; --sp-10:40px;
+
+  /* ── Radius ── */
+  --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:20px; --r-pill:999px;
+
+  /* ── Shadow ── */
+  --sh-card:0 1px 0 rgba(255,255,255,.02), 0 8px 24px rgba(0,0,0,.35);
+  --sh-pop:0 12px 40px rgba(0,0,0,.5);
+  --sh-jade:0 6px 22px rgba(47,190,154,.32);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--np-bg);color:var(--np-text);font-family:var(--np-sans);-webkit-font-smoothing:antialiased;}
+
+/* ════ PRIMITIVES (port these into index.css) ════ */
+.card{background:var(--np-card);border:1px solid var(--np-border);border-radius:var(--r-lg);padding:var(--sp-5);}
+.card-jade{border-color:var(--np-jade-line);box-shadow:inset 0 0 0 1px var(--np-jade-dim);}
+.card-gold{border-color:var(--np-gold-line);background:linear-gradient(180deg,var(--np-gold-dim),transparent 60%),var(--np-card);}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-2);padding:14px 22px;border-radius:var(--r-md);font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:filter .15s,transform .08s,border-color .15s;text-decoration:none;line-height:1;}
+.btn:active{transform:scale(.975);}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.btn-primary{background:var(--np-jade);color:#06120E;}
+.btn-primary:hover{filter:brightness(1.06);}
+.btn-ghost{background:transparent;color:var(--np-text);border-color:var(--np-border-strong);}
+.btn-ghost:hover{border-color:var(--np-jade-line);color:var(--np-jade);}
+.btn-danger{background:var(--np-fail);color:#fff;}
+.btn-success{background:var(--np-success);color:#06120E;}
+.btn-gold{background:var(--np-gold);color:#1A1505;}
+.btn-block{width:100%;}
+.btn-sm{padding:9px 14px;font-size:13px;border-radius:var(--r-sm);}
+
+.input,.textarea{width:100%;background:var(--np-surface);border:1px solid var(--np-border);border-radius:var(--r-md);padding:13px 15px;color:var(--np-text);font-family:inherit;font-size:15px;outline:none;transition:border-color .15s,box-shadow .15s;}
+.textarea{resize:vertical;min-height:96px;line-height:1.5;}
+.input:focus,.textarea:focus{border-color:var(--np-jade-line);box-shadow:0 0 0 3px var(--np-jade-dim);}
+.input::placeholder,.textarea::placeholder{color:var(--np-text-muted);}
+
+.label{font-size:11px;color:var(--np-text-muted);letter-spacing:.08em;text-transform:uppercase;font-weight:600;}
+.mono{font-family:var(--np-mono);font-variant-numeric:tabular-nums;}
+
+/* slider */
+.np-slider{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:var(--r-pill);background:linear-gradient(90deg,var(--np-jade) 0 var(--p,55%),var(--np-border-strong) var(--p,55%) 100%);outline:none;}
+.np-slider::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--np-jade);border:3px solid var(--np-bg);box-shadow:0 2px 8px rgba(0,0,0,.5);cursor:pointer;}
+
+/* state badge */
+.state-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:var(--r-pill);font-size:11px;font-weight:700;letter-spacing:.02em;line-height:1.4;}
+.state-badge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;}
+.s-funding {background:var(--np-info-dim);  color:var(--np-info);}
+.s-active  {background:var(--np-jade-dim);  color:var(--np-jade);}
+.s-success {background:var(--np-jade-dim);  color:var(--np-jade);}
+.s-fail    {background:var(--np-fail-dim);  color:var(--np-fail);}
+.s-locked  {background:var(--np-gold-dim);  color:var(--np-gold);}
+.s-claim   {background:var(--np-jade);      color:#06120E;}
+.s-claim::before{background:#06120E;}
+.s-settled {background:rgba(94,107,126,.16);color:var(--np-text-dim);}
+.s-cancel  {background:rgba(94,107,126,.12);color:var(--np-text-muted);}
+.s-phase   {background:var(--np-info-dim);  color:var(--np-info);}
+
+/* progress */
+.progress-bar{height:6px;background:var(--np-border);border-radius:var(--r-pill);overflow:hidden;}
+.progress-fill{height:100%;border-radius:var(--r-pill);background:var(--np-jade);}
+
+/* chat bubbles */
+.bubble-bot{background:var(--np-card-raised);border:1px solid var(--np-border);border-radius:4px 16px 16px 16px;padding:13px 16px;max-width:80%;font-size:15px;line-height:1.55;}
+.bubble-user{background:var(--np-jade-dim);border:1px solid var(--np-jade-line);color:var(--np-text);border-radius:16px 16px 4px 16px;padding:13px 16px;max-width:80%;font-size:15px;line-height:1.55;align-self:flex-end;}
+
+/* spinner / dot */
+.spinner{width:22px;height:22px;border:2px solid var(--np-jade-dim);border-top-color:var(--np-jade);border-radius:50%;animation:np-spin .7s linear infinite;}
+@keyframes np-spin{to{transform:rotate(360deg);}}
+
+/* toast */
+.toast{padding:13px 16px;border-radius:var(--r-md);font-size:14px;font-weight:600;box-shadow:var(--sh-pop);display:flex;align-items:center;gap:10px;animation:np-slide .22s ease;}
+.toast-success{background:var(--np-jade);color:#06120E;}
+.toast-error{background:var(--np-fail);color:#fff;}
+.toast-info{background:var(--np-card-raised);color:var(--np-text);border:1px solid var(--np-border);}
+@keyframes np-slide{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
+
+/* swatch helpers (styleguide only) */
+.swatch{height:64px;border-radius:var(--r-md);border:1px solid var(--np-border);}
+.sect{scroll-margin-top:20px;}
+</style>
+</helmet>
+
+<div style="max-width:980px;margin:0 auto;padding:48px 24px 96px;">
+
+  <!-- ░░ HEADER ░░ -->
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:8px;">
+    <div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+        <div style="width:44px;height:44px;border-radius:12px;background:var(--np-jade-dim);border:1px solid var(--np-jade-line);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:var(--np-jade);">忍</div>
+        <span class="mono" style="font-size:13px;color:var(--np-jade);letter-spacing:.16em;">NINJAPACT</span>
+      </div>
+      <h1 style="font-size:38px;font-weight:800;letter-spacing:-.02em;line-height:1.05;">设计系统 · Design System</h1>
+      <p style="color:var(--np-text-dim);font-size:16px;margin-top:10px;max-width:540px;line-height:1.6;">克制、高级、有忍者魂。一本安静的道场账本 —— token、原子组件与状态规范。</p>
+    </div>
+    <div class="mono" style="font-size:12px;color:var(--np-text-muted);text-align:right;line-height:1.9;">
+      v1.0 · 2026<br>移动优先 · PWA<br>暗色基调
+    </div>
+  </div>
+
+  <div style="height:1px;background:var(--np-border);margin:36px 0;"></div>
+
+  <!-- ░░ COLOR ░░ -->
+  <div class="sect" style="margin-bottom:56px;">
+    <div class="label" style="margin-bottom:18px;">01 — 色板 Palette</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;">
+      <div><div class="swatch" style="background:#0B0E14;"></div><div style="margin-top:8px;font-size:13px;font-weight:600;">墨 Ink</div><div class="mono" style="font-size:11px;color:var(--np-text-muted);">#0B0E14 · bg</div></div>
+      <div><div class="swatch" style="background:#161B26;"></div><div style="margin-top:8px;font-size:13px;font-weight:600;">卡片 Card</div><div class="mono" style="font-size:11px;color:var(--np-text-muted);">#161B26</div></div>
+      <div><div class="swatch" style="background:#232C3B;"></div><div style="margin-top:8px;font-size:13px;font-weight:600;">描边 Border</div><div class="mono" style="font-size:11px;color:var(--np-text-muted);">#232C3B</div></div>
+      <div><div class="swatch" style="background:#2FBE9A;border:none;"></div><div style="margin-top:8px;font-size:13px;font-weight:600;color:var(--np-jade);">玉绿 Jade · 主色</div><div class="mono" style="font-size:11px;color:var(--np-text-muted);">#2FBE9A</div></div>
+      <div><div class="swatch" style="background:#D9B25A;border:none;"></div><div style="margin-top:8px;font-size:13px;font-weight:600;color:var(--np-gold);">金 Gold · 荣誉</div><div class="mono" style="font-size:11px;color:var(--np-text-muted);">#D9B25A</div></div>
+      <div><div class="swatch" style="background:#E0584F;border:none;"></div><div style="margin-top:8px;font-size:13px;font-weight:600;color:var(--np-fail);">红 Fail</div><div class="mono" style="font-size:11px;color:var(--np-text-muted);">#E0584F</div></div>
+      <div><div class="swatch" style="background:#6E8BB5;border:none;"></div><div style="margin-top:8px;font-size:13px;font-weight:600;color:var(--np-info);">钢蓝 Phase</div><div class="mono" style="font-size:11px;color:var(--np-text-muted);">#6E8BB5</div></div>
+      <div><div class="swatch" style="background:#EAEFF6;border:none;"></div><div style="margin-top:8px;font-size:13px;font-weight:600;">文字 Text</div><div class="mono" style="font-size:11px;color:var(--np-text-muted);">#EAEFF6</div></div>
+    </div>
+    <p style="color:var(--np-text-dim);font-size:13px;margin-top:16px;line-height:1.6;">玉绿承载进行中 / 成功 / 主操作；金承载勋章 / 锁定 / Judge 身份。语义：<span style="color:var(--np-jade)">绿=成功</span> · <span style="color:var(--np-gold)">金=锁定</span> · <span style="color:var(--np-fail)">红=失败</span> · <span style="color:var(--np-text-muted)">灰=取消</span>。</p>
+  </div>
+
+  <!-- ░░ TYPE ░░ -->
+  <div class="sect" style="margin-bottom:56px;">
+    <div class="label" style="margin-bottom:18px;">02 — 文字 Typography</div>
+    <div class="card" style="display:flex;flex-direction:column;gap:18px;">
+      <div style="display:flex;align-items:baseline;gap:16px;"><span class="mono" style="font-size:11px;color:var(--np-text-muted);width:130px;flex-shrink:0;">display / 38·800</span><span style="font-size:38px;font-weight:800;letter-spacing:-.02em;">忍者之约</span></div>
+      <div style="display:flex;align-items:baseline;gap:16px;"><span class="mono" style="font-size:11px;color:var(--np-text-muted);width:130px;flex-shrink:0;">title / 26·700</span><span style="font-size:26px;font-weight:700;">今日是否如约</span></div>
+      <div style="display:flex;align-items:baseline;gap:16px;"><span class="mono" style="font-size:11px;color:var(--np-text-muted);width:130px;flex-shrink:0;">heading / 20·700</span><span style="font-size:20px;font-weight:700;">承诺摘要</span></div>
+      <div style="display:flex;align-items:baseline;gap:16px;"><span class="mono" style="font-size:11px;color:var(--np-text-muted);width:130px;flex-shrink:0;">body / 15·400</span><span style="font-size:15px;color:var(--np-text-dim);">每日上传一张证据照片，AI 裁判验收。</span></div>
+      <div style="display:flex;align-items:baseline;gap:16px;"><span class="mono" style="font-size:11px;color:var(--np-text-muted);width:130px;flex-shrink:0;">numeral / mono</span><span class="mono" style="font-size:30px;font-weight:700;color:var(--np-jade);">128.00 mUSD</span></div>
+      <div style="display:flex;align-items:baseline;gap:16px;"><span class="mono" style="font-size:11px;color:var(--np-text-muted);width:130px;flex-shrink:0;">label / 11·600</span><span class="label">质押金额 STAKE</span></div>
+    </div>
+    <p style="color:var(--np-text-dim);font-size:13px;margin-top:14px;line-height:1.6;">正文用 PingFang / 系统中文无衬线；数值与代码用等宽 tabular，承载金额、倒计时、地址 —— 账本感。</p>
+  </div>
+
+  <!-- ░░ SPACING / RADIUS ░░ -->
+  <div class="sect" style="margin-bottom:56px;">
+    <div class="label" style="margin-bottom:18px;">03 — 间距 · 圆角 · 阴影</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="card">
+        <div style="font-size:13px;font-weight:600;margin-bottom:14px;">间距阶梯 (4 基准)</div>
+        <div style="display:flex;align-items:flex-end;gap:10px;">
+          <div style="text-align:center;"><div style="width:4px;height:4px;background:var(--np-jade);margin:0 auto;"></div><div class="mono" style="font-size:10px;color:var(--np-text-muted);margin-top:6px;">4</div></div>
+          <div style="text-align:center;"><div style="width:8px;height:8px;background:var(--np-jade);margin:0 auto;"></div><div class="mono" style="font-size:10px;color:var(--np-text-muted);margin-top:6px;">8</div></div>
+          <div style="text-align:center;"><div style="width:12px;height:12px;background:var(--np-jade);margin:0 auto;"></div><div class="mono" style="font-size:10px;color:var(--np-text-muted);margin-top:6px;">12</div></div>
+          <div style="text-align:center;"><div style="width:16px;height:16px;background:var(--np-jade);margin:0 auto;"></div><div class="mono" style="font-size:10px;color:var(--np-text-muted);margin-top:6px;">16</div></div>
+          <div style="text-align:center;"><div style="width:20px;height:20px;background:var(--np-jade);margin:0 auto;"></div><div class="mono" style="font-size:10px;color:var(--np-text-muted);margin-top:6px;">20</div></div>
+          <div style="text-align:center;"><div style="width:24px;height:24px;background:var(--np-jade);margin:0 auto;"></div><div class="mono" style="font-size:10px;color:var(--np-text-muted);margin-top:6px;">24</div></div>
+          <div style="text-align:center;"><div style="width:32px;height:32px;background:var(--np-jade);margin:0 auto;"></div><div class="mono" style="font-size:10px;color:var(--np-text-muted);margin-top:6px;">32</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px;font-weight:600;margin-bottom:14px;">圆角 · 阴影</div>
+        <div style="display:flex;gap:12px;align-items:center;">
+          <div style="width:48px;height:48px;background:var(--np-card-raised);border:1px solid var(--np-border);border-radius:8px;"></div>
+          <div style="width:48px;height:48px;background:var(--np-card-raised);border:1px solid var(--np-border);border-radius:12px;"></div>
+          <div style="width:48px;height:48px;background:var(--np-card-raised);border:1px solid var(--np-border);border-radius:16px;"></div>
+          <div style="width:48px;height:48px;background:var(--np-jade);border-radius:16px;box-shadow:var(--sh-jade);"></div>
+        </div>
+        <div class="mono" style="font-size:10px;color:var(--np-text-muted);margin-top:10px;">8 · 12 · 16 · pill — jade glow 仅限主操作</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ░░ BUTTONS ░░ -->
+  <div class="sect" style="margin-bottom:56px;">
+    <div class="label" style="margin-bottom:18px;">04 — 按钮 Button</div>
+    <div class="card" style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
+      <button class="btn btn-primary">确认立约</button>
+      <button class="btn btn-ghost">提交修改</button>
+      <button class="btn btn-success">确认放款</button>
+      <button class="btn btn-danger">申请裁决</button>
+      <button class="btn btn-gold">领取勋章</button>
+      <button class="btn btn-primary" disabled>处理中…</button>
+      <button class="btn btn-ghost btn-sm">小号 ghost</button>
+    </div>
+  </div>
+
+  <!-- ░░ CARDS ░░ -->
+  <div class="sect" style="margin-bottom:56px;">
+    <div class="label" style="margin-bottom:18px;">05 — 卡片 Card</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+      <div class="card"><div class="label" style="margin-bottom:8px;">普通卡片</div><div style="font-weight:600;font-size:15px;">每日跑步 3 公里</div><div style="color:var(--np-text-dim);font-size:13px;margin-top:6px;">.card</div></div>
+      <div class="card card-jade"><div class="label" style="margin-bottom:8px;color:var(--np-jade);">玉色强调</div><div style="font-weight:600;font-size:15px;">进行中的承诺</div><div style="color:var(--np-text-dim);font-size:13px;margin-top:6px;">.card-jade</div></div>
+      <div class="card card-gold"><div class="label" style="margin-bottom:8px;color:var(--np-gold);">荣誉 / Judge</div><div style="font-weight:600;font-size:15px;">ERC-8004 身份卡</div><div style="color:var(--np-text-dim);font-size:13px;margin-top:6px;">.card-gold</div></div>
+    </div>
+  </div>
+
+  <!-- ░░ INPUTS / SLIDER ░░ -->
+  <div class="sect" style="margin-bottom:56px;">
+    <div class="label" style="margin-bottom:18px;">06 — 输入 · 滑块 Form</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="card" style="display:flex;flex-direction:column;gap:14px;">
+        <div><div class="label" style="margin-bottom:8px;">目标</div><input class="input" placeholder="例：每天 23:00 前完成复盘"></div>
+        <div><div class="label" style="margin-bottom:8px;">备注</div><textarea class="textarea" placeholder="验收标准、证据要求…"></textarea></div>
+      </div>
+      <div class="card" style="display:flex;flex-direction:column;gap:24px;">
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:12px;"><span class="label">周期</span><span class="mono" style="font-size:14px;color:var(--np-jade);font-weight:700;">21 天</span></div>
+          <input type="range" class="np-slider" value="55" style="--p:55%;">
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:12px;"><span class="label">质押</span><span class="mono" style="font-size:14px;color:var(--np-jade);font-weight:700;">128 mUSD</span></div>
+          <input type="range" class="np-slider" value="38" style="--p:38%;">
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:12px;"><span class="label">免卡券</span><span class="mono" style="font-size:14px;color:var(--np-jade);font-weight:700;">3 张</span></div>
+          <input type="range" class="np-slider" value="70" style="--p:70%;">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ░░ STATE BADGES ░░ -->
+  <div class="sect" style="margin-bottom:56px;">
+    <div class="label" style="margin-bottom:18px;">07 — 状态徽标 State Badge</div>
+    <div class="card">
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px;">
+        <span class="state-badge s-funding">待资金</span>
+        <span class="state-badge s-funding">等待入伙</span>
+        <span class="state-badge s-active">进行中</span>
+        <span class="state-badge s-success">已成功</span>
+        <span class="state-badge s-fail">失败</span>
+        <span class="state-badge s-locked">锁定中</span>
+        <span class="state-badge s-claim">可领取</span>
+        <span class="state-badge s-settled">已结算</span>
+        <span class="state-badge s-cancel">已取消</span>
+      </div>
+      <div class="label" style="margin-bottom:10px;">托管阶段 ESCROW PHASE</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;">
+        <span class="state-badge s-phase">等待交付</span>
+        <span class="state-badge s-phase">验收中</span>
+        <span class="state-badge s-phase">修改中</span>
+        <span class="state-badge s-phase">终局裁决中</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ░░ PROGRESS ░░ -->
+  <div class="sect" style="margin-bottom:56px;">
+    <div class="label" style="margin-bottom:18px;">08 — 进度 Progress</div>
+    <div class="card" style="display:flex;flex-direction:column;gap:18px;">
+      <div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="font-size:13px;">打卡进度</span><span class="mono" style="font-size:13px;color:var(--np-text-dim);">14 / 21</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:66%;"></div></div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="font-size:13px;">锁定释放倒计时</span><span class="mono" style="font-size:13px;color:var(--np-gold);">还剩 132 天</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:27%;background:var(--np-gold);"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ░░ CHAT BUBBLES ░░ -->
+  <div class="sect" style="margin-bottom:56px;">
+    <div class="label" style="margin-bottom:18px;">09 — 对话气泡 Chat</div>
+    <div class="card" style="display:flex;flex-direction:column;gap:14px;">
+      <div style="display:flex;gap:10px;align-items:flex-end;">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--np-jade-dim);border:1px solid var(--np-jade-line);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:var(--np-jade);flex-shrink:0;">忍</div>
+        <div class="bubble-bot">想立个什么约？告诉我目标、周期和你愿意押多少。</div>
+      </div>
+      <div class="bubble-user">每天背 20 个单词，坚持 21 天，押 100。</div>
+      <div style="display:flex;gap:10px;align-items:flex-end;">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--np-jade-dim);border:1px solid var(--np-jade-line);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:var(--np-jade);flex-shrink:0;">忍</div>
+        <div class="bubble-bot">明白了。证据 = 每日单词截图。给你拟好摘要，确认即可立约。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ░░ BELT RING ░░ -->
+  <div class="sect" style="margin-bottom:56px;">
+    <div class="label" style="margin-bottom:18px;">10 — 段位圆环 Belt Ring</div>
+    <div class="card">
+      <div style="display:flex;flex-wrap:wrap;gap:28px;justify-content:center;">
+        <div style="text-align:center;"><div style="width:72px;height:72px;border-radius:50%;border:4px solid #E8ECF2;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#E8ECF2;">忍</div><div class="mono" style="font-size:11px;color:var(--np-text-muted);margin-top:8px;">白带</div></div>
+        <div style="text-align:center;"><div style="width:72px;height:72px;border-radius:50%;border:4px solid #E7C84B;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#E7C84B;">忍</div><div class="mono" style="font-size:11px;color:var(--np-text-muted);margin-top:8px;">黄带</div></div>
+        <div style="text-align:center;"><div style="width:72px;height:72px;border-radius:50%;border:4px solid #2FBE9A;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#2FBE9A;">忍</div><div class="mono" style="font-size:11px;color:var(--np-text-muted);margin-top:8px;">绿带</div></div>
+        <div style="text-align:center;"><div style="width:72px;height:72px;border-radius:50%;border:4px solid #5B8DEF;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#5B8DEF;">忍</div><div class="mono" style="font-size:11px;color:var(--np-text-muted);margin-top:8px;">蓝带</div></div>
+        <div style="text-align:center;"><div style="width:72px;height:72px;border-radius:50%;border:4px solid #A06A3C;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#A06A3C;">忍</div><div class="mono" style="font-size:11px;color:var(--np-text-muted);margin-top:8px;">棕带</div></div>
+        <div style="text-align:center;"><div style="width:72px;height:72px;border-radius:50%;border:4px solid #2A2F3A;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#7E8AA0;background:#0E1118;">忍</div><div class="mono" style="font-size:11px;color:var(--np-text-muted);margin-top:8px;">黑带</div></div>
+      </div>
+      <p style="color:var(--np-text-dim);font-size:13px;margin-top:18px;text-align:center;">环色随段位变 · 忍字居中 · 守诺勋章数决定进阶</p>
+    </div>
+  </div>
+
+  <!-- ░░ FEEDBACK ░░ -->
+  <div class="sect" style="margin-bottom:56px;">
+    <div class="label" style="margin-bottom:18px;">11 — 反馈 Spinner · Toast · 空态</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="toast toast-success"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10"/></svg>打卡通过，AI 已签名上链</div>
+        <div class="toast toast-error"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>验收未通过，可重新提交</div>
+        <div class="toast toast-info"><div class="spinner" style="width:16px;height:16px;"></div> 正在等待裁决…</div>
+      </div>
+      <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;min-height:160px;">
+        <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="var(--np-text-muted)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/><path d="M9 13h6"/><path d="M9 17h6"/></svg>
+        <div style="font-weight:600;">还没有承诺</div>
+        <div style="color:var(--np-text-dim);font-size:13px;">立一个约，用质押换自律</div>
+        <button class="btn btn-primary btn-sm" style="margin-top:6px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>立约</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ░░ BOTTOM ACTION BAR ░░ -->
+  <div class="sect" style="margin-bottom:56px;">
+    <div class="label" style="margin-bottom:18px;">12 — 底部操作区 Bottom Action Bar</div>
+    <div style="position:relative;height:200px;background:var(--np-surface);border:1px solid var(--np-border);border-radius:var(--r-lg);overflow:hidden;">
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--np-text-muted);font-size:13px;">页面内容…</div>
+      <div style="position:absolute;left:0;right:0;bottom:0;padding:16px;background:linear-gradient(180deg,transparent,var(--np-bg) 36%);display:flex;gap:12px;">
+        <button class="btn btn-ghost" style="flex:0 0 auto;">取消</button>
+        <button class="btn btn-primary btn-block" style="flex:1;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2"/><path d="M9 13a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/></svg>今日打卡</button>
+      </div>
+    </div>
+    <p style="color:var(--np-text-dim);font-size:13px;margin-top:14px;line-height:1.6;">主操作底部锚定、拇指可达、渐变遮罩压住滚动内容；每屏一个焦点。</p>
+  </div>
+
+  <!-- ░░ TOKEN REFERENCE ░░ -->
+  <div class="sect" style="margin-bottom:24px;">
+    <div class="label" style="margin-bottom:18px;">13 — Token 清单 (拿去替换 index.css)</div>
+    <pre class="mono" style="background:#0E1118;border:1px solid var(--np-border);border-radius:var(--r-md);padding:22px;font-size:12px;line-height:1.85;color:var(--np-text-dim);overflow-x:auto;white-space:pre;">:root{
+  --bg:#0B0E14;          --surface:#11151E;     --card:#161B26;
+  --card-raised:#1C2330; --border:#232C3B;      --border-strong:#2E3A4D;
+  --jade:#2FBE9A;        --jade-dim:rgba(47,190,154,.14);  --jade-line:rgba(47,190,154,.45);
+  --gold:#D9B25A;        --gold-dim:rgba(217,178,90,.14);  --gold-line:rgba(217,178,90,.45);
+  --success:#2FBE9A;     --locked:#D9B25A;      --fail:#E0584F;   --info:#6E8BB5;
+  --text:#EAEFF6;        --text-dim:#9AA7BA;     --text-muted:#5E6B7E;
+  --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:20px; --r-pill:999px;
+  --sp-1:4; --sp-2:8; --sp-3:12; --sp-4:16; --sp-5:20; --sp-6:24; --sp-8:32; --sp-10:40;
+  --sh-card:0 8px 24px rgba(0,0,0,.35);  --sh-jade:0 6px 22px rgba(47,190,154,.32);
+}
+/* 原子类: .card .card-jade .card-gold · .btn-primary/ghost/danger/success/gold
+   .input .textarea .np-slider · .state-badge + .s-funding/active/success/fail/locked/claim/settled/cancel/phase
+   .progress-bar .bubble-bot .bubble-user .spinner .toast-* — 见上方 &lt;style&gt; 块 */</pre>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

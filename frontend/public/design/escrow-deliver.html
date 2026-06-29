@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>交付 · 委托 #8 · 忍者之约</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell screen">
+    <header class="top-nav" style="border: none; margin-bottom: var(--sp-3);">
+      <button type="button" class="nav-back" onclick="location.href='dashboard.html'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        返回
+      </button>
+      <span class="state-badge s-active">编写中</span>
+    </header>
+
+    <div class="detail-layout">
+      <div class="detail-main">
+        <div class="detail-hero reveal mode-escrow-hero">
+          <div class="detail-meta-row">
+            <span class="kind-tag mode-escrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M7 11l5 3 5-3M7 7h10v10H7z"/></svg>
+              我接的交付 · 委托 #8
+            </span>
+            <span class="stake-tag">800 mUSD</span>
+          </div>
+          <h1 class="title">Injective 前端集成模块</h1>
+          <p class="evidence-lede">验收标准：demo 可登录并完成一次链上读操作；源码 zip 含 README 与部署说明。</p>
+
+          <div class="phase-track" aria-label="交付阶段">
+            <div class="phase-step done"><span class="phase-dot"></span>接受</div>
+            <div class="phase-step active"><span class="phase-dot"></span>编写</div>
+            <div class="phase-step"><span class="phase-dot"></span>提交</div>
+            <div class="phase-step"><span class="phase-dot"></span>验收</div>
+            <div class="phase-step"><span class="phase-dot"></span>放款</div>
+          </div>
+        </div>
+
+        <div class="stat-grid mobile-only reveal">
+          <div class="stat-cell">
+            <p class="label">委托方</p>
+            <p class="value mono" style="font-size: 12px; color: var(--text-dim);">0x5589…9Bd2</p>
+          </div>
+          <div class="stat-cell">
+            <p class="label">完成可得</p>
+            <p class="value mono" style="color: var(--gold);">800</p>
+          </div>
+        </div>
+
+        <div class="action-card reveal">
+          <div class="action-card-head">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <h2>提交交付物</h2>
+          </div>
+          <p class="subtitle" style="font-size: 13px; margin-bottom: var(--sp-4);">
+            上传源码压缩包（加密托管）+ 可测 demo 链接。委托人验收通过后，托管金才会放款给你。
+          </p>
+
+          <label class="upload-zone" id="upload-zone">
+            <input type="file" accept=".zip,.tar.gz" hidden id="file-input" />
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span class="upload-label" id="upload-label">选择源码 zip</span>
+            <span class="upload-hint">不含 node_modules · 最大 50MB</span>
+          </label>
+
+          <label class="label" style="display: block; margin: var(--sp-4) 0 var(--sp-2);">Demo 链接</label>
+          <input type="url" class="input" placeholder="https://your-demo.vercel.app" style="margin-bottom: var(--sp-4);" />
+
+          <button type="button" class="btn btn-primary btn-block" id="submit-deliver">提交交付，等待验收</button>
+        </div>
+
+        <section class="checklist-card reveal" aria-label="验收清单">
+          <div class="checkin-history-head">
+            <h2>对照验收标准</h2>
+          </div>
+          <ul class="accept-list">
+            <li class="accept-item">
+              <span class="accept-check pending" aria-hidden="true"></span>
+              <span>Privy 登录流程可完成</span>
+            </li>
+            <li class="accept-item">
+              <span class="accept-check pending" aria-hidden="true"></span>
+              <span>合约读操作返回预期数据</span>
+            </li>
+            <li class="accept-item">
+              <span class="accept-check pending" aria-hidden="true"></span>
+              <span>README 含部署步骤</span>
+            </li>
+          </ul>
+        </section>
+      </div>
+
+      <aside class="detail-sidebar desktop-only">
+        <div class="sidebar-card reveal">
+          <p class="label" style="margin-bottom: var(--sp-3);">委托信息</p>
+          <dl class="contract-dl">
+            <div class="contract-row">
+              <dt>委托方</dt>
+              <dd class="mono" style="color: var(--text-dim);">0x5589…9Bd2</dd>
+            </div>
+            <div class="contract-row">
+              <dt>完成可得</dt>
+              <dd class="mono-gold">800 mUSD</dd>
+            </div>
+            <div class="contract-row">
+              <dt>修改次数</dt>
+              <dd>0 / 1 已用</dd>
+            </div>
+            <div class="contract-row">
+              <dt>接受时间</dt>
+              <dd class="mono" style="color: var(--text-dim);">06-25 09:10</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="sidebar-card reveal">
+          <p class="label" style="margin-bottom: var(--sp-3);">提示</p>
+          <p class="subtitle" style="font-size: 13px; line-height: 1.5;">
+            Demo 必须可公开访问且与验收标准一一对应。委托人满意后才会触发放款，源码在此之前不可被下载。
+          </p>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      if ('IntersectionObserver' in window) {
+        var obs = new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            if (e.isIntersecting) { e.target.classList.add('is-visible'); obs.unobserve(e.target); }
+          });
+        }, { threshold: 0.08 });
+        document.querySelectorAll('.reveal').forEach(function (el, i) {
+          el.style.transitionDelay = (i * 60) + 'ms';
+          obs.observe(el);
+        });
+      }
+
+      var input = document.getElementById('file-input');
+      var label = document.getElementById('upload-label');
+      var zone = document.getElementById('upload-zone');
+      if (input && label) {
+        input.addEventListener('change', function () {
+          if (input.files && input.files[0]) {
+            label.textContent = input.files[0].name;
+            zone.classList.add('has-file');
+          }
+        });
+      }
+      var btn = document.getElementById('submit-deliver');
+      if (btn) {
+        btn.addEventListener('click', function () {
+          btn.textContent = '上传并上链中…';
+          btn.disabled = true;
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

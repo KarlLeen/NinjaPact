@@ -1,0 +1,183 @@
+/* React production app — maps Vite routes onto the OD design system */
+
+#root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
+}
+
+.screen,
+.screen-full {
+  flex: none;
+  height: 100%;
+  min-height: 100%;
+  max-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  max-width: var(--max-w-mobile);
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 var(--sp-4) var(--scroll-pad-bottom);
+}
+
+.screen-full {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--sp-6) var(--sp-4) var(--scroll-pad-bottom);
+}
+
+.scroll {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Alias OD .mark for React components */
+.np-mark {
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid var(--jade-line);
+  box-shadow: var(--sh-jade), inset 0 0 0 1px rgba(47, 190, 154, 0.08);
+  display: grid;
+  place-items: center;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--jade);
+  line-height: 1;
+}
+
+.np-mark-sm {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 17px;
+}
+
+.np-mark-gold {
+  border-color: var(--gold-line);
+  box-shadow: 0 0 24px var(--gold-dim);
+  color: var(--gold);
+}
+
+.badge-display {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), #A06A3C);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1A1505;
+  box-shadow: 0 0 30px var(--gold-dim);
+  border: 2px solid var(--gold-line);
+}
+
+.empty-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  border-radius: var(--r-lg);
+  border: 1px dashed var(--border-strong);
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+}
+
+/* Toast */
+.toast-container {
+  position: fixed;
+  top: var(--sp-4);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  max-width: 360px;
+  width: calc(100% - 32px);
+}
+
+.toast {
+  padding: 13px 16px;
+  border-radius: var(--r-md);
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  animation: np-slide 0.22s ease;
+}
+
+.toast-success { background: var(--jade); color: #06120E; }
+.toast-error { background: var(--fail); color: #fff; }
+.toast-info {
+  background: var(--card-raised);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+@keyframes np-slide {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.spinner {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--jade-dim);
+  border-top-color: var(--jade);
+  border-radius: 50%;
+  animation: np-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes np-spin { to { transform: rotate(360deg); } }
+
+/* Camera (check-in flow) */
+.camera-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3/4;
+  background: #000;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+.camera-container video,
+.camera-container canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera-shutter {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  border: 4px solid rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.camera-shutter:active { transform: translateX(-50%) scale(0.9); }
+
+@media (min-width: 768px) {
+  .screen,
+  .screen-full {
+    max-width: var(--max-w-desktop);
+  }
+}

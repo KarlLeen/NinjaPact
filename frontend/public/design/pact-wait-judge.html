@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>承诺 #12 · 等待裁决</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell screen">
+    <header class="top-nav" style="border: none; margin-bottom: var(--sp-3);">
+      <button type="button" class="nav-back" onclick="location.href='dashboard.html'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        返回
+      </button>
+      <span class="state-badge s-phase">裁决中</span>
+    </header>
+
+    <div class="summary-card">
+      <span class="kind-tag mode-solo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>
+        自律打卡 · 承诺 #12
+      </span>
+      <h1 class="title">每天 7 点前完成 30 分钟力量训练并拍照</h1>
+      <div class="progress-bar" style="margin-top: var(--sp-3);"><div class="progress-fill" style="width: 50%;"></div></div>
+      <p class="label" style="text-transform: none; margin-top: var(--sp-2);">打卡 6/12 · 通过 5 · 失败 1</p>
+    </div>
+
+    <div class="status-panel">
+      <div class="status-icon-lg">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      </div>
+      <h2>等待 Judge 裁决</h2>
+      <p class="status-lede">你刚提交了今日打卡，AI Judge 正在对照承诺条款审核照片与动作挑战。通常数秒内完成。</p>
+    </div>
+
+    <div class="result-banner" style="margin-top: var(--sp-4);">
+      <div class="result-icon" style="background: var(--surface); color: var(--text-muted); box-shadow: inset 0 0 0 1px var(--border);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+      </div>
+      <div>
+        <p class="result-title">已提交 · 06-28 06:42</p>
+        <p class="result-sub">动作挑战：右手举至耳侧 · 照片已上传</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

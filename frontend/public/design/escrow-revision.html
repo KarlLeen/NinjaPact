@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>托管 #8 · 修改中</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell screen">
+    <header class="top-nav" style="border: none; margin-bottom: var(--sp-3);">
+      <button type="button" class="nav-back" onclick="location.href='dashboard.html'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        返回
+      </button>
+      <span class="state-badge s-phase">修改中</span>
+    </header>
+
+    <div class="summary-card">
+      <span class="kind-tag mode-escrow">交付托管 · 委托 #8</span>
+      <h1 class="title">交付 Injective 前端集成模块，含 Privy 登录与合约读写的 demo</h1>
+      <div class="phase-track" style="margin-top: var(--sp-4);">
+        <div class="phase-step done"><span class="phase-dot"></span>托管</div>
+        <div class="phase-step done"><span class="phase-dot"></span>接单</div>
+        <div class="phase-step done"><span class="phase-dot"></span>交付</div>
+        <div class="phase-step active"><span class="phase-dot"></span>修改</div>
+        <div class="phase-step pending"><span class="phase-dot"></span>放款</div>
+      </div>
+    </div>
+
+    <div class="dispute-card">
+      <p class="label">你提交的修改意见</p>
+      <p>demo 登录后链上读操作返回 403，请检查 RPC 端点配置；README 缺少本地 env 示例。</p>
+      <p class="subtitle" style="font-size: 12px; margin-top: var(--sp-2);">提交于 2026-06-27 · 剩余修改次数 0/1 已用</p>
+    </div>
+
+    <div class="status-panel">
+      <div class="status-mark info">改</div>
+      <h2>等待交付方重新交付</h2>
+      <p class="status-lede">修改意见已上链通知交付方。Ta 重新提交源码与 demo 后，你将再次进入验收。</p>
+    </div>
+  </div>
+</body>
+</html>

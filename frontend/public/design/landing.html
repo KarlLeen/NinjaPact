@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>忍者之约</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell screen-centered landing-layout">
+    <div class="landing-brand">
+      <div class="mark" style="margin-bottom: 24px;" aria-hidden="true">
+        <span class="mark-char">忍</span>
+      </div>
+
+      <h1 class="display" style="margin-bottom: 12px;">忍者之约</h1>
+      <p class="lede" style="margin-bottom: 8px;">用自律立约，用代码守诺</p>
+      <p class="subtitle" style="font-size: 13px; margin-bottom: 0;">质押稳定币 · AI 验收 · 链上结算</p>
+
+      <p class="label desktop-only" style="margin-top: 28px; max-width: 36ch; line-height: 1.5; text-transform: none; letter-spacing: 0;">
+        社交登录 · 自动生成钱包 · 无需助记词
+      </p>
+    </div>
+
+    <div class="stack landing-actions">
+      <button type="button" class="btn btn-primary btn-block" id="enter-btn">
+        开始立约
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+      <button type="button" class="btn btn-ghost btn-block">登录后领取测试 mUSD</button>
+
+      <p class="label mobile-only" style="margin-top: 28px; max-width: 260px; line-height: 1.5; text-transform: none; letter-spacing: 0;">
+        社交登录 · 自动生成钱包 · 无需助记词
+      </p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('enter-btn').addEventListener('click', function () {
+      window.location.href = 'dashboard.html';
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>对赌 #16 · 等待对手</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell screen">
+    <header class="top-nav" style="border: none; margin-bottom: var(--sp-3);">
+      <button type="button" class="nav-back" onclick="location.href='dashboard.html'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        返回
+      </button>
+      <span class="state-badge s-funding">等待入伙</span>
+    </header>
+
+    <div class="summary-card">
+      <span class="kind-tag mode-bet">公共事件对赌 · #16</span>
+      <h1 class="title">2026 年 Q3 结束前，Solana 日活地址是否超过 400 万？</h1>
+      <div class="bet-sides" style="margin-top: var(--sp-4);">
+        <div class="bet-side yes">
+          <p class="label">发起方 · 我</p>
+          <p class="bet-side-label">YES · 会发生</p>
+          <p class="bet-side-stake mono">150 mUSD</p>
+        </div>
+        <div class="bet-vs" aria-hidden="true">VS</div>
+        <div class="bet-side no empty">
+          <p class="label">对手</p>
+          <p class="bet-side-label">待加入</p>
+          <p class="bet-side-stake mono">—</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="invite-card">
+      <p class="invite-title">对手邀请</p>
+      <p class="invite-lede">把链接发给对手。对方押等额 150 mUSD 接受后，对赌才生效。到期由 AI 裁判裁定 YES/NO。</p>
+      <button type="button" class="btn btn-primary btn-block" id="copy-btn">复制邀请链接</button>
+    </div>
+
+    <div class="status-panel" style="margin-top: var(--sp-4);">
+      <div class="status-icon-lg">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>
+      </div>
+      <h2>等待对手加入</h2>
+      <p class="status-lede">你已押 YES 并锁定 150 mUSD。对手接受并押 NO 后，奖池变为 300 mUSD。</p>
+    </div>
+  </div>
+  <script>
+    document.getElementById('copy-btn').addEventListener('click', function () {
+      this.textContent = '已复制';
+      setTimeout(function () { document.getElementById('copy-btn').textContent = '复制邀请链接'; }, 2000);
+    });
+  </script>
+</body>
+</html>

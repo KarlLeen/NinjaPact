@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>对赌 #15 · 等待裁定</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell screen">
+    <header class="top-nav" style="border: none; margin-bottom: var(--sp-3);">
+      <button type="button" class="nav-back" onclick="location.href='dashboard.html'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        返回
+      </button>
+      <span class="state-badge s-active">进行中</span>
+    </header>
+
+    <div class="summary-card">
+      <span class="kind-tag mode-bet">公共事件对赌 · #15</span>
+      <h1 class="title">2026 年 7 月 15 日前，Injective 主网 TVL 是否突破 5 亿美元？</h1>
+      <div class="bet-sides" style="margin-top: var(--sp-4);">
+        <div class="bet-side yes">
+          <p class="label">发起方 · 我</p>
+          <p class="bet-side-label">YES · 会发生</p>
+          <p class="bet-side-stake mono">200 mUSD</p>
+        </div>
+        <div class="bet-vs" aria-hidden="true">VS</div>
+        <div class="bet-side no">
+          <p class="label">对手</p>
+          <p class="bet-side-label">NO · 不会发生</p>
+          <p class="bet-side-stake mono">200 mUSD</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="result-banner" style="border-color: var(--gold-line); background: linear-gradient(135deg, var(--gold-dim), transparent 60%), var(--surface);">
+      <div class="result-icon" style="background: var(--gold-dim); color: var(--gold); box-shadow: inset 0 0 0 1px var(--gold-line);">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div>
+        <p class="result-title">双方已押注，等待裁定</p>
+        <p class="result-sub">截止 2026-07-15 · 到期由 AI 裁判查证 YES/NO 并链上结算</p>
+      </div>
+    </div>
+
+    <div class="status-panel" style="margin-top: var(--sp-4);">
+      <p class="status-lede">事件结果将在截止日后由 AI 裁判对照公开数据源裁定。裁判超时则各退各（安全网）。</p>
+    </div>
+  </div>
+</body>
+</html>

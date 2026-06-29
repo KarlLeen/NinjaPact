@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "injective-mcp-servers": {
+      "source": "InjectiveLabs/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/injective-mcp-servers/SKILL.md",
+      "computedHash": "8fd13a80a146fecd78bb18bfa453a99bc31061a37568b805a2820510e2503599"
+    }
+  }
+}
