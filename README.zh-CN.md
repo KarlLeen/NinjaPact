@@ -8,7 +8,7 @@
 
 <a id="中文"></a>
 
-## 在线体验
+## website
 
 **https://www.limlamleen.com** — Injective EVM 测试网（chainId `1439`）。Privy 邮箱 / Google 登录；应用内可领取测试 mUSD。
 
