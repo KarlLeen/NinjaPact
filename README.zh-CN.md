@@ -174,7 +174,6 @@ cd keeper && npm install && npm run dev
 | 公共事件对赌 | BetPage |
 | 见证人争议 | WitnessPage |
 
-UI 设计系统见 `frontend/设计系统.dc.html` 与 `frontend/src/index.css`（玉绿 / 金 / 墨底 token）。
 
 ---
 
