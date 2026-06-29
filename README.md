@@ -8,7 +8,7 @@
 
 <a id="english"></a>
 
-## Live demo
+## website
 
 **https://www.limlamleen.com** — Injective EVM testnet (chainId `1439`). Email / Google login via Privy; claim test mUSD in-app.
 
