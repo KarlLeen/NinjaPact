@@ -134,6 +134,27 @@ export async function callAI(
 const GLM_TEXT_MODEL = process.env.AI_CHAT_MODEL ?? 'glm-4-flash'
 const GLM_ARBITER_MODEL = process.env.AI_ARBITER_MODEL ?? GLM_TEXT_MODEL
 
+// Azure OpenAI (GPT-5.4) — terminal arbitration only; falls back to GLM if key absent.
+const AZURE_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT ?? 'https://models.inference.ai.azure.com'
+const AZURE_API_KEY = process.env.AZURE_OPENAI_API_KEY ?? ''
+
+async function callAzureText(prompt: string): Promise<string> {
+  if (!AZURE_API_KEY) return callGlmText(prompt, GLM_ARBITER_MODEL)
+  const resp = await fetch(`${AZURE_ENDPOINT}/chat/completions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'api-key': AZURE_API_KEY },
+    body: JSON.stringify({
+      model: 'gpt-5.4',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.2,
+      max_tokens: 400,
+    }),
+  })
+  if (!resp.ok) throw new Error(`Azure OpenAI error ${resp.status}: ${await resp.text()}`)
+  const data = await resp.json() as { choices: Array<{ message: { content: string } }> }
+  return (data.choices[0]?.message?.content ?? '{}').trim()
+}
+
 async function callGlmText(prompt: string, model: string): Promise<string> {
   const apiKey = process.env.AI_API_KEY ?? ''
   const resp = await fetch(`${GLM_BASE}/chat/completions`, {
@@ -189,7 +210,7 @@ ${history}
 
 必须以合法JSON回复：{"pass":true/false,"reasoning":"中文60字内裁决理由"}
 只输出JSON。`
-  const p = extractJson<{ pass?: boolean; reasoning?: string }>(await callGlmText(prompt, GLM_ARBITER_MODEL))
+  const p = extractJson<{ pass?: boolean; reasoning?: string }>(await callAzureText(prompt))
   return { pass: Boolean(p.pass), reasoning: String(p.reasoning ?? '') }
 }
 
