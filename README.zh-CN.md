@@ -105,7 +105,7 @@ Habit 用户（低门槛入口，零冷启动）
 Judge 服务 (Node.js · TypeScript)
     ├── SOLO：GLM-4V 视觉验收（每日证据）
     ├── Escrow 日常：GLM 文本仲裁（vs 验收标准）
-    ├── Escrow 终局裁决：Azure OpenAI GPT-5.4（有异议时旗舰模型复核）
+    ├── Escrow 终局裁决：Azure OpenAI GPT-5.4 (Microsoft Foundry) — 修改次数用尽后旗舰模型终局仲裁
     ├── EIP-712 签名裁决
     └── ERC-8004 on-chain identity · Agent #48
         https://testnet.blockscout.injective.network/token/0x8004A818BFB912233c491871b3d84c89A494BD9e/instance/48
