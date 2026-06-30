@@ -105,7 +105,7 @@ User (Privy embedded wallet)
 Judge service (Node.js · TypeScript)
     ├── SOLO: GLM-4V vision model (daily evidence)
     ├── Escrow routine: GLM text (vs acceptance criteria)
-    ├── Escrow dispute: Azure OpenAI GPT-5.4 (Microsoft Foundry) — terminal arbitration when revision loop is exhausted
+    ├── Disputes: Azure OpenAI GPT-5.4 (Microsoft Foundry) — terminal arbitration on escalated disputes (escrow & witness challenges)
     ├── EIP-712 signed verdicts
     └── ERC-8004 on-chain identity · Agent #48
         https://testnet.blockscout.injective.network/token/0x8004A818BFB912233c491871b3d84c89A494BD9e/instance/48
