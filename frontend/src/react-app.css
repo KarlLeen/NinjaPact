@@ -8,6 +8,35 @@
   overflow: hidden;
 }
 
+/* React pages still use .nav — alias to OD .top-nav */
+.nav,
+.top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-4) 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--sp-5);
+  flex-shrink: 0;
+}
+
+.nav .top-nav-brand,
+.top-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.nav .top-nav-actions,
+.top-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+}
+
 .screen,
 .screen-full {
   flex: none;
@@ -179,5 +208,17 @@
   .screen,
   .screen-full {
     max-width: var(--max-w-desktop);
+  }
+
+  .mint-toolbar-btn {
+    white-space: nowrap;
+    align-self: stretch;
+  }
+}
+
+@media (max-width: 767px) {
+  .top-nav-actions .btn-sm {
+    padding: 8px 10px;
+    font-size: 12px;
   }
 }

@@ -1,16 +1,16 @@
 import { useState } from 'react'
-import { useAccount, useReadContract, useWriteContract, usePublicClient } from 'wagmi'
+import { useAccount, useReadContract, useWriteContract } from 'wagmi'
 import { formatUnits, parseUnits, type Address } from 'viem'
 import { MOCK_USD_ABI, MOCK_USD_ADDRESS } from '../lib/contracts'
 import { useToast } from '../lib/toast'
+import { waitReceipt } from '../lib/tx'
 
 export const FAUCET_MUSD = parseUnits('10000', 6)
 
 /// Testnet faucet: MockUSD.mint is permissionless — mint 10000 mUSD to the connected wallet.
-export function MintMusdButton({ block = false }: { block?: boolean }) {
+export function MintMusdButton({ block = false, compact = false }: { block?: boolean; compact?: boolean }) {
   const { address } = useAccount()
   const { writeContractAsync } = useWriteContract()
-  const publicClient = usePublicClient()
   const toast = useToast()
   const [minting, setMinting] = useState(false)
 
@@ -23,7 +23,7 @@ export function MintMusdButton({ block = false }: { block?: boolean }) {
   })
 
   async function handleMint() {
-    if (!address || !publicClient) return
+    if (!address) return
     setMinting(true)
     try {
       toast('领取测试 mUSD...', 'info')
@@ -33,7 +33,7 @@ export function MintMusdButton({ block = false }: { block?: boolean }) {
         functionName: 'mint',
         args: [address as Address, FAUCET_MUSD],
       })
-      await publicClient.waitForTransactionReceipt({ hash })
+      await waitReceipt(hash)
       await refetch()
       toast('已领取 10000 mUSD', 'success')
     } catch (e: unknown) {
@@ -46,6 +46,20 @@ export function MintMusdButton({ block = false }: { block?: boolean }) {
 
   if (!MOCK_USD_ADDRESS) return null
 
+  if (compact) {
+    return (
+      <button
+        type="button"
+        className="btn btn-ghost btn-sm mint-toolbar-btn"
+        onClick={handleMint}
+        disabled={minting || !address}
+        title={balance !== undefined ? `余额 ${formatUnits(balance, 6)} mUSD` : undefined}
+      >
+        {minting ? <><span className="spinner" /> 领取中...</> : '领取测试 mUSD（10000）'}
+      </button>
+    )
+  }
+
   return (
     <div style={{ marginBottom: block ? 16 : 0 }}>
       {balance !== undefined && (
@@ -54,6 +68,7 @@ export function MintMusdButton({ block = false }: { block?: boolean }) {
         </div>
       )}
       <button
+        type="button"
         className={`btn btn-ghost${block ? ' btn-block' : ''}`}
         onClick={handleMint}
         disabled={minting || !address}

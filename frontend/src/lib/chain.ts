@@ -1,4 +1,5 @@
 import { defineChain } from 'viem'
+import { INJ_TESTNET_RPC_URLS } from './rpc'
 
 export const injectiveTestnet = defineChain({
   id: 1439,
@@ -6,7 +7,7 @@ export const injectiveTestnet = defineChain({
   nativeCurrency: { name: 'INJ', symbol: 'INJ', decimals: 18 },
   rpcUrls: {
     default: {
-      http: ['https://testnet.sentry.chain.json-rpc.injective.network'],
+      http: [...INJ_TESTNET_RPC_URLS],
     },
   },
   blockExplorers: {

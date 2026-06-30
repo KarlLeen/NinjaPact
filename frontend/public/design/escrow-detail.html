@@ -43,20 +43,20 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
             <h2>验收：测试 demo</h2>
           </div>
-          <p class="subtitle" style="font-size: 13px; margin-bottom: var(--sp-4);">
+          <p class="subtitle text-subtle">
             对照验收标准实测；满意就放款，有问题就提修改意见。源码已托管，放款后才可下载。
           </p>
-          <a href="#" class="btn btn-ghost btn-block" style="margin-bottom: var(--sp-3);" onclick="return false;">打开 demo 实测</a>
+          <a href="#" class="btn btn-ghost btn-block" onclick="return false;">打开 demo 实测</a>
           <div class="action-row" id="review-actions">
-            <button type="button" class="btn btn-primary" style="flex: 2;" id="btn-confirm">满意，放款</button>
-            <button type="button" class="btn btn-ghost" style="flex: 1;" id="btn-revise">提修改</button>
+            <button type="button" class="btn btn-primary" id="btn-confirm">满意，放款</button>
+            <button type="button" class="btn btn-ghost" id="btn-revise">提修改</button>
           </div>
           <div class="revise-panel panel-hidden" id="revise-panel">
-            <textarea class="input" rows="3" placeholder="具体说明哪里不符合验收标准…" style="width: 100%; resize: vertical; margin-bottom: var(--sp-3);"></textarea>
-            <p class="label" style="margin-bottom: var(--sp-3); text-transform: none;">剩余修改次数：1（提交将用掉 1 次）</p>
+            <textarea class="input" rows="3" placeholder="具体说明哪里不符合验收标准…" style="width: 100%; resize: vertical;"></textarea>
+            <p class="label label-normal">剩余修改次数：1（提交将用掉 1 次）</p>
             <div class="action-row">
-              <button type="button" class="btn btn-ghost" style="flex: 1;" id="btn-cancel-revise">取消</button>
-              <button type="button" class="btn btn-primary" style="flex: 2;">提交修改意见</button>
+              <button type="button" class="btn btn-ghost" id="btn-cancel-revise">取消</button>
+              <button type="button" class="btn btn-primary">提交修改意见</button>
             </div>
           </div>
         </div>

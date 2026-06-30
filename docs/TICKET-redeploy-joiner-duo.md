@@ -45,7 +45,7 @@
    - `cast send <MockUSD> "mint(address,uint256)" <Privy 嵌入式测试钱包> <额度>`(给 demo 账户),按需也给 deployer。
 5. 确认 gas:Judge 钱包 `0xfBA7…2A18`、Keeper 钱包 `0x3801…72c4` 各还有 ≥0.5 INJ(不够就从 deployer 转或走水龙头)。
 
-> Judge 的 ERC-8004 agentId **#48 不受影响**(在 IdentityRegistry 上,独立于 NinjaPact)。ReputationRegistry 地址 `0x8004B663…8713` 不变。**无需重新注册 agent**,只要 `judge/.env` 的 `JUDGE_PRIVATE_KEY` 不变。
+> Judge 的 ERC-8004 [Agent #48](https://testnet.blockscout.injective.network/token/0x8004A818BFB912233c491871b3d84c89A494BD9e/instance/48) **不受影响**（在 IdentityRegistry 上，独立于 NinjaPact）。ReputationRegistry 地址 `0x8004B663…8713` 不变。**无需重新注册 agent**，只要 `judge/.env` 的 `JUDGE_PRIVATE_KEY` 不变。
 
 ### C. 更新 4 个 env(把三个新地址写进去)
 6. 同步以下文件的 `NINJAPACT`/`MOCKUSD`/`BADGE` 地址(其余键不动):

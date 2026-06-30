@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useAccount, useReadContract, useWriteContract, usePublicClient, useSignMessage } from 'wagmi'
+import { useAccount, useReadContract, useWriteContract, useSignMessage } from 'wagmi'
 import { formatUnits, type Address } from 'viem'
 import {
   NINJA_PACT_ABI, MOCK_USD_ABI, BADGE_ABI,
@@ -12,12 +12,27 @@ import { Camera } from '../components/Camera'
 import { RateJudge } from '../components/RateJudge'
 import { useToast } from '../lib/toast'
 import { fetchTermsText } from '../lib/terms'
+import { fetchWithTimeout } from '../lib/fetch'
+import { compressDataUrl } from '../lib/image'
+import { getJudgeJwt, loadJwt } from '../lib/judgeAuth'
+import { waitReceipt } from '../lib/tx'
 import { getWitnessSecret, witnessLink, ZERO_ADDRESS } from '../lib/witness'
+import { DetailTopNav, SoloKindTag, CheckinTimeline } from '../components/PactUi'
 import { EscrowDetail } from './EscrowDetail'
 
 function formatDate(ts: bigint): string {
   return new Date(Number(ts) * 1000).toLocaleString('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
+
+function formatShortDate(ts: bigint): string {
+  const d = new Date(Number(ts) * 1000)
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${m}-${day}`
+}
+
+const PROGRESS_RING_R = 42
+const PROGRESS_RING_C = 2 * Math.PI * PROGRESS_RING_R
 
 function formatCountdown(lockUntil: bigint): string {
   const ms = Number(lockUntil) * 1000 - Date.now()
@@ -34,38 +49,12 @@ function makeChallenge(): string {
   return actions[Math.floor(Math.random() * actions.length)]
 }
 
-// ─── SIWE-style JWT helpers ───────────────────────────────────────────────────
-
-async function fetchNonce(): Promise<string> {
-  const r = await fetch(`${JUDGE_URL}/nonce`)
-  if (!r.ok) throw new Error('无法获取 nonce')
-  const { nonce } = await r.json() as { nonce: string }
-  return nonce
-}
-
-interface StoredJwt { token: string; exp: number }
-
-function loadJwt(): string | null {
-  try {
-    const raw = sessionStorage.getItem('judge_jwt')
-    if (!raw) return null
-    const { token, exp } = JSON.parse(raw) as StoredJwt
-    if (Date.now() > exp - 60_000) return null  // 1-min buffer
-    return token
-  } catch { return null }
-}
-
-function saveJwt(token: string, expiresAt: number) {
-  sessionStorage.setItem('judge_jwt', JSON.stringify({ token, exp: expiresAt }))
-}
-
 export function PactDetail() {
   const { id } = useParams()
   const nav = useNavigate()
   const { address } = useAccount()
   const { writeContractAsync } = useWriteContract()
   const { signMessageAsync } = useSignMessage()
-  const publicClient = usePublicClient()
   const toast = useToast()
 
   const pactId = BigInt(id ?? '0')
@@ -74,6 +63,7 @@ export function PactDetail() {
   const [busy, setBusy] = useState(false)
   const [aiResult, setAiResult] = useState<{ pass: boolean; reasoning: string } | null>(null)
   const [showRedeem, setShowRedeem] = useState(false)
+  const [submittingChallenge, setSubmittingChallenge] = useState<string | null>(null)
 
   // Generate challenge once per camera session
   const [challenge, setChallenge] = useState(() => makeChallenge())
@@ -164,41 +154,22 @@ export function PactDetail() {
   const isParty = parties?.some(p => p.addr.toLowerCase() === address?.toLowerCase()) ?? false
   const canCheckin = state === STATE.Active && isParty
 
-  // ── Get or refresh JWT ────────────────────────────────────────────────────────
-  async function getJwt(): Promise<string> {
-    const cached = loadJwt()
-    if (cached) return cached
-
-    toast('需要签名验证身份（本会话仅一次）', 'info')
-    const nonce = await fetchNonce()
-    const message = `NinjaPact 打卡认证\n\nnonce: ${nonce}\ntimestamp: ${Date.now()}`
-    const signature = await signMessageAsync({ message })
-
-    const r = await fetch(`${JUDGE_URL}/auth`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message, signature, address }),
-    })
-    if (!r.ok) {
-      const err = await r.json() as { error?: string }
-      throw new Error(err.error ?? '认证失败')
-    }
-    const { token, expiresAt } = await r.json() as { token: string; expiresAt: number }
-    saveJwt(token, expiresAt)
-    return token
-  }
-
   // ── Checkin: upload evidence → Judge (GLM) verdict → signed on-chain ──────────
   async function handleCheckin(dataUrl: string) {
     setShowCamera(false)
     setBusy(true)
     setAiResult(null)
+    setSubmittingChallenge(challenge)
 
     try {
-      const jwt = await getJwt()
+      if (!loadJwt()) toast('需要签名验证身份（本会话仅一次）', 'info')
+      const jwt = await getJudgeJwt(signMessageAsync, address)
 
-      toast('AI 裁决中...', 'info')
-      const resp = await fetch(`${JUDGE_URL}/evidence`, {
+      toast('压缩并上传证据…', 'info')
+      const image = await compressDataUrl(dataUrl)
+
+      toast('AI 裁决中（通常 10–30 秒）…', 'info')
+      const resp = await fetchWithTimeout(`${JUDGE_URL}/evidence`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -206,10 +177,11 @@ export function PactDetail() {
         },
         body: JSON.stringify({
           commitmentId: pactId.toString(),
-          image: dataUrl,
+          image,
           termsText: termsText || `承诺 #${pactId} 的打卡验证`,
           challenge,
         }),
+        timeoutMs: 120_000,
       })
 
       if (!resp.ok) {
@@ -226,8 +198,8 @@ export function PactDetail() {
       }
 
       setAiResult({ pass: result.pass, reasoning: result.reasoning })
-      toast('等待上链确认...', 'info')
-      await publicClient!.waitForTransactionReceipt({ hash: result.txHash as `0x${string}` })
+      toast('等待上链确认…', 'info')
+      await waitReceipt(result.txHash as `0x${string}`)
 
       toast(
         result.pass ? '打卡通过！' : result.useRestCard ? '已消耗免卡券' : '打卡失败',
@@ -244,6 +216,7 @@ export function PactDetail() {
       }
     } finally {
       setBusy(false)
+      setSubmittingChallenge(null)
     }
   }
 
@@ -258,7 +231,7 @@ export function PactDetail() {
         functionName: 'settle',
         args: [pactId],
       })
-      await publicClient!.waitForTransactionReceipt({ hash })
+      await waitReceipt(hash)
       toast('结算成功', 'success')
       await refetch()
     } catch (e: unknown) {
@@ -278,7 +251,7 @@ export function PactDetail() {
         functionName: 'claim',
         args: [pactId],
       })
-      await publicClient!.waitForTransactionReceipt({ hash })
+      await waitReceipt(hash)
       toast('已领取资金', 'success')
       await refetch()
     } catch (e: unknown) {
@@ -299,7 +272,7 @@ export function PactDetail() {
         functionName: 'redeemLock',
         args: [pactId, successId],
       })
-      await publicClient!.waitForTransactionReceipt({ hash })
+      await waitReceipt(hash)
       toast('救赎成功！可领取资金', 'success')
       await refetch()
     } catch (e: unknown) {
@@ -320,7 +293,7 @@ export function PactDetail() {
         functionName: 'approve',
         args: [NINJA_PACT_ADDRESS, stake],
       })
-      await publicClient!.waitForTransactionReceipt({ hash: approveTx })
+      await waitReceipt(approveTx)
 
       toast('步骤 2/2：质押资金...', 'info')
       const fundTx = await writeContractAsync({
@@ -329,7 +302,7 @@ export function PactDetail() {
         functionName: 'fund',
         args: [pactId],
       })
-      await publicClient!.waitForTransactionReceipt({ hash: fundTx })
+      await waitReceipt(fundTx)
       toast('质押成功，承诺已激活！', 'success')
       await refetch()
     } catch (e: unknown) {
@@ -350,39 +323,87 @@ export function PactDetail() {
         functionName: 'mint',
         args: [address as Address, parseUnits('1000', 6)],
       })
-      await publicClient!.waitForTransactionReceipt({ hash })
+      await waitReceipt(hash)
       toast('已领取 1000 mUSD', 'success')
     } catch {
       toast('领取失败', 'error')
     } finally { setBusy(false) }
   }
 
+  // ── Fund (Created) ───────────────────────────────────────────────────────────
+  if (state === STATE.Created) {
+    const titleText = goalText || `承诺 #${pactId.toString()}`
+    return (
+      <div className="app-shell screen screen-detail">
+        <DetailTopNav
+          onBack={() => nav('/dashboard')}
+          badge={<span className={`state-badge ${STATE_CLASS[state]}`}>{STATE_LABEL[state]}</span>}
+        />
+        <div className="summary-card">
+          <SoloKindTag pactId={pactId} />
+          <h1 className="title">{titleText}</h1>
+          <div className="divider" style={{ margin: 'var(--sp-3) 0' }} />
+          <dl className="contract-dl">
+            <div className="contract-row">
+              <dt className="subtitle">需质押</dt>
+              <dd className="mono-gold">{formatUnits(stake, 6)} mUSD</dd>
+            </div>
+            <div className="contract-row">
+              <dt className="subtitle">打卡次数</dt>
+              <dd>{totalRequired.toString()} 次</dd>
+            </div>
+            <div className="contract-row">
+              <dt className="subtitle">判负阈值</dt>
+              <dd>{failThreshold.toString()} 次失败</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div className="status-panel accent">
+          <div className="status-mark gold">质</div>
+          <h2>承诺已创建，质押尚未完成</h2>
+          <p className="status-lede">确认质押后承诺才生效，Judge 才会开始计次。测试网可先领取 mUSD。</p>
+          <button
+            type="button"
+            className="btn btn-ghost btn-block"
+            onClick={handleMintTestTokens}
+            disabled={busy}
+            style={{ marginBottom: 'var(--sp-2)' }}
+          >
+            领取测试 mUSD（1000）
+          </button>
+          <button type="button" className="btn btn-primary btn-block" onClick={handleFund} disabled={busy}>
+            {busy ? (
+              <>
+                <span className="spinner" /> 处理中...
+              </>
+            ) : (
+              `确认质押 ${formatUnits(stake, 6)} mUSD`
+            )}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   // ── Success panel ─────────────────────────────────────────────────────────────
   if (state === STATE.Success || state === STATE.Settled) {
     return (
-      <div className="screen">
-        <div className="nav">
-          <button className="nav-back" onClick={() => nav('/dashboard')}>← 返回</button>
-        </div>
-        <div style={{ textAlign: 'center', paddingTop: 40 }}>
-          <div className="badge-display" style={{ margin: '0 auto 24px' }}>忍</div>
-          <h2 style={{ marginBottom: 8, fontSize: 24, color: 'var(--success)' }}>承诺已完成！</h2>
-          <p className="subtitle" style={{ marginBottom: 24 }}>
-            质押 {formatUnits(stake, 6)} mUSD 已退还
-          </p>
-          <div className="card" style={{ marginBottom: 16 }}>
-            <div style={{ fontWeight: 600, marginBottom: 4 }}>守诺勋章</div>
-            <div className="subtitle">soulbound 勋章已铸造 · 不可转让</div>
-            {badgeBalance !== undefined && (
-              <div style={{ marginTop: 8, color: 'var(--accent)', fontWeight: 600 }}>
-                持有勋章：{badgeBalance.toString()} 枚
-              </div>
-            )}
-          </div>
+      <div className="app-shell screen screen-detail">
+        <DetailTopNav onBack={() => nav('/dashboard')} badge={<span className={`state-badge ${STATE_CLASS[state]}`}>{STATE_LABEL[state]}</span>} />
+        <div className="status-panel accent">
+          <div className="status-mark jade">成</div>
+          <h2>承诺已完成</h2>
+          <p className="status-lede">质押 {formatUnits(stake, 6)} mUSD 已退还 · 守诺勋章已铸造</p>
+          {badgeBalance !== undefined && (
+            <p className="subtitle text-jade">持有勋章：{badgeBalance.toString()} 枚</p>
+          )}
           <RateJudge id={pactId} scene="habit" outcome="success" />
-          <button className="btn btn-primary btn-block" style={{ marginTop: 16 }} onClick={() => nav('/create')}>
-            再立新约 
-          </button>
+          <button type="button" className="btn btn-primary btn-block" style={{ marginTop: 16 }} onClick={() => nav('/create')}>再立新约</button>
+        </div>
+        <div className="summary-card">
+          <span className="kind-tag mode-solo">自律打卡 · 承诺 #{pactId.toString()}</span>
+          <h2 className="title" style={{ fontSize: 16, marginTop: 8 }}>{goalText || `承诺 #${pactId.toString()}`}</h2>
         </div>
       </div>
     )
@@ -391,50 +412,29 @@ export function PactDetail() {
   // ── Locked panel ──────────────────────────────────────────────────────────────
   if (state === STATE.Locked) {
     return (
-      <div className="screen">
-        <div className="nav">
-          <button className="nav-back" onClick={() => nav('/dashboard')}>← 返回</button>
-          <span className={`state-badge ${STATE_CLASS[state]}`}>{STATE_LABEL[state]}</span>
-        </div>
-        <div style={{ textAlign: 'center', paddingTop: 20 }}>
-          <div style={{ fontSize: 56, marginBottom: 16 }}>锁</div>
-          <h2 style={{ marginBottom: 8, color: 'var(--locked)' }}>承诺未完成</h2>
-          <p className="subtitle" style={{ marginBottom: 24 }}>
-            {formatUnits(stake, 6)} mUSD 锁定 6 个月
-          </p>
-          <div className="card" style={{ marginBottom: 24, textAlign: 'left' }}>
-            <div className="stat-row">
-              <span className="subtitle">解锁倒计时</span>
-              <span className="stat-value">{formatCountdown(lockedUntil)}</span>
-            </div>
-            <div className="stat-row">
-              <span className="subtitle">解锁时间</span>
-              <span className="stat-value" style={{ fontSize: 14 }}>{formatDate(lockedUntil)}</span>
-            </div>
-          </div>
-          <div className="card" style={{ marginBottom: 16, borderColor: 'var(--accent)', textAlign: 'left' }}>
-            <div style={{ fontWeight: 600, marginBottom: 8, color: 'var(--accent)' }}>救赎之道</div>
-            <p className="subtitle" style={{ marginBottom: 16 }}>
-              完成一个新承诺，用它救赎这个失败——立即解锁，无需等待 6 个月。
-            </p>
-            <button className="btn btn-primary btn-block" onClick={() => setShowRedeem(true)} disabled={busy}>
-              用已成功的承诺救赎
-            </button>
+      <div className="app-shell screen screen-detail">
+        <DetailTopNav onBack={() => nav('/dashboard')} badge={<span className={`state-badge ${STATE_CLASS[state]}`}>{STATE_LABEL[state]}</span>} />
+        <div className="status-panel fail">
+          <div className="status-mark">锁</div>
+          <h2>承诺未完成</h2>
+          <p className="status-lede">{formatUnits(stake, 6)} mUSD 锁定 6 个月 · 解锁倒计时 {formatCountdown(lockedUntil)}</p>
+          <div className="sidebar-card" style={{ marginTop: 16, textAlign: 'left' }}>
+            <p className="label section-label">救赎之道</p>
+            <p className="subtitle text-subtle">完成一个新承诺，用它救赎这个失败——立即解锁，无需等待 6 个月。</p>
+            <button type="button" className="btn btn-primary btn-block" style={{ marginTop: 12 }} onClick={() => setShowRedeem(true)} disabled={busy}>用已成功的承诺救赎</button>
           </div>
           {showRedeem && (
-            <div className="card" style={{ marginBottom: 16, textAlign: 'left' }}>
-              <div style={{ fontWeight: 600, marginBottom: 12 }}>选择一个已完成的承诺</div>
+            <div className="sidebar-card" style={{ marginTop: 12, textAlign: 'left' }}>
+              <p className="label">选择一个已完成的承诺</p>
               {userIds?.filter(sid => sid !== pactId).length === 0 && (
                 <p className="subtitle">没有可用的成功承诺，先去完成一个新约吧！</p>
               )}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
                 {userIds?.filter(sid => sid !== pactId).map(sid => (
                   <RedeemOption key={sid.toString()} successId={sid} onRedeem={handleRedeem} />
                 ))}
               </div>
-              <button className="btn btn-ghost btn-block" style={{ marginTop: 12 }} onClick={() => setShowRedeem(false)}>
-                取消
-              </button>
+              <button type="button" className="btn btn-ghost btn-block" style={{ marginTop: 12 }} onClick={() => setShowRedeem(false)}>取消</button>
             </div>
           )}
           <RateJudge id={pactId} scene="habit" outcome="fail" />
@@ -443,21 +443,15 @@ export function PactDetail() {
     )
   }
 
-  // ── Claimable panel ───────────────────────────────────────────────────────────
   if (state === STATE.Claimable) {
     return (
-      <div className="screen">
-        <div className="nav">
-          <button className="nav-back" onClick={() => nav('/dashboard')}>← 返回</button>
-          <span className={`state-badge ${STATE_CLASS[state]}`}>{STATE_LABEL[state]}</span>
-        </div>
-        <div style={{ textAlign: 'center', paddingTop: 40 }}>
-          <div style={{ fontSize: 56, marginBottom: 16 }}>解</div>
-          <h2 style={{ marginBottom: 8 }}>可以领取了</h2>
-          <p className="subtitle" style={{ marginBottom: 32 }}>
-            {formatUnits(stake, 6)} mUSD 已解锁，可原路退还
-          </p>
-          <button className="btn btn-primary btn-block" onClick={handleClaim} disabled={busy}>
+      <div className="app-shell screen screen-detail">
+        <DetailTopNav onBack={() => nav('/dashboard')} badge={<span className={`state-badge ${STATE_CLASS[state]}`}>{STATE_LABEL[state]}</span>} />
+        <div className="status-panel">
+          <div className="status-mark">解</div>
+          <h2>可以领取了</h2>
+          <p className="status-lede">{formatUnits(stake, 6)} mUSD 已解锁，可原路退还</p>
+          <button type="button" className="btn btn-primary btn-block" onClick={handleClaim} disabled={busy}>
             {busy ? <><span className="spinner" /> 领取中...</> : `领取 ${formatUnits(stake, 6)} mUSD`}
           </button>
           <RateJudge id={pactId} scene="habit" outcome="fail" />
@@ -469,146 +463,316 @@ export function PactDetail() {
   // ── Active / main checkin panel ───────────────────────────────────────────────
   const totalVerdict = Number(verdictPass) + Number(verdictFail) + Number(restUsed)
   const pct = Math.min(100, (totalVerdict / Number(totalRequired)) * 100)
+  const ringOffset = PROGRESS_RING_C * (1 - pct / 100)
+  const daysLeft = schedule
+    ? Math.max(0, Math.ceil((Number(schedule.endTime) * 1000 - Date.now()) / 86400000))
+    : 0
+  const titleText = goalText || `承诺 #${pactId.toString()}`
+  const showMobileBar = !showCamera && canCheckin && !busy
+  const progressPct = Math.min(100, (totalVerdict / Number(totalRequired)) * 100)
 
-  return (
-    <div className="screen">
-      <div className="nav">
-        <button className="nav-back" onClick={() => nav('/dashboard')}>← 返回</button>
-        <span className="state-badge s-active" style={{ marginRight: 8 }}>自律打卡</span>
-        <span className={`state-badge ${STATE_CLASS[state]}`}>{STATE_LABEL[state]}</span>
-      </div>
-
-      {/* Goal header */}
-      {goalText && (
-        <h2 style={{ fontSize: 18, marginBottom: 16, lineHeight: 1.4 }}>{goalText}</h2>
-      )}
-
-      {/* AI result banner */}
-      {aiResult && (
-        <div className="card" style={{
-          marginBottom: 16,
-          borderColor: aiResult.pass ? 'var(--success)' : 'var(--fail)',
-          textAlign: 'center',
-        }}>
-          <div style={{ fontSize: 36, marginBottom: 4 }}>{aiResult.pass ? '已' : '未'}</div>
-          <div style={{ fontWeight: 600, marginBottom: 4 }}>
-            {aiResult.pass ? 'AI 裁决：通过！' : 'AI 裁决：未通过'}
-          </div>
-          {aiResult.reasoning && (
-            <div className="subtitle" style={{ fontSize: 13 }}>{aiResult.reasoning}</div>
-          )}
-        </div>
-      )}
-
-      {/* Camera */}
-      {showCamera ? (
-        <Camera
-          challenge={challenge}
-          onCapture={handleCheckin}
-          onCancel={() => setShowCamera(false)}
+  // ── Wait Judge (submitted, AI reviewing) ──────────────────────────────────────
+  if (busy && !showCamera && state === STATE.Active) {
+    return (
+      <div className="app-shell screen screen-detail">
+        <DetailTopNav
+          onBack={() => nav('/dashboard')}
+          badge={<span className="state-badge s-phase">裁决中</span>}
         />
+        <div className="summary-card">
+          <SoloKindTag pactId={pactId} />
+          <h1 className="title">{titleText}</h1>
+          <div className="progress-bar" style={{ marginTop: 'var(--sp-3)' }}>
+            <div className="progress-fill" style={{ width: `${progressPct}%` }} />
+          </div>
+          <p className="label label-normal" style={{ marginTop: 'var(--sp-2)' }}>
+            打卡 {totalVerdict}/{totalRequired.toString()} · 通过 {verdictPass.toString()} · 失败 {verdictFail.toString()}
+          </p>
+        </div>
+
+        <div className="status-panel">
+          <div className="status-icon-lg" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 7v5l3 2" />
+            </svg>
+          </div>
+          <h2>等待 Judge 裁决</h2>
+          <p className="status-lede">
+            你刚提交了今日打卡，AI Judge 正在对照承诺条款审核照片与动作挑战。通常 10–30 秒；测试网 RPC 慢时可能更久。
+          </p>
+          <p className="label witness-hint">裁决由 AI Judge 签名上链，无需再次确认交易</p>
+        </div>
+
+        <div className="result-banner">
+          <div className="result-icon pending" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <path d="M21 15l-5-5L5 21" />
+            </svg>
+          </div>
+          <div className="result-body">
+            <p className="result-title">已提交 · 刚刚</p>
+            <p className="result-sub">
+              {submittingChallenge ? `动作挑战：${submittingChallenge} · 照片已上传` : '照片已上传 · AI 审核中'}
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const checkinBtn = (
+    <button
+      type="button"
+      className="btn btn-primary btn-block"
+      onClick={() => setShowCamera(true)}
+      disabled={busy}
+    >
+      {busy ? (
+        <>
+          <span className="spinner" /> 处理中...
+        </>
       ) : (
         <>
-          {/* Stats */}
-          <div className="card" style={{ marginBottom: 16 }}>
-            <div style={{ marginBottom: 14 }}>
-              <div className="label" style={{ marginBottom: 6 }}>打卡进度</div>
-              <div className="progress-bar" style={{ marginBottom: 8 }}>
-                <div className="progress-fill" style={{ width: `${pct}%` }} />
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="label">{totalVerdict}/{totalRequired} 次</span>
-                <span className="label">{pct.toFixed(0)}%</span>
-              </div>
-            </div>
-            <div className="divider" style={{ margin: '12px 0' }} />
-            <div className="stat-row">
-              <span className="subtitle">通过</span>
-              <span className="stat-value" style={{ color: 'var(--success)' }}>{verdictPass.toString()}</span>
-            </div>
-            <div className="stat-row">
-              <span className="subtitle">失败</span>
-              <span className="stat-value" style={{ color: 'var(--fail)' }}>{verdictFail.toString()}</span>
-            </div>
-            <div className="stat-row">
-              <span className="subtitle">免卡券</span>
-              <span className="stat-value">
-                {Number(restCards) - Number(restUsed)}/{restCards.toString()} 剩余
-              </span>
-            </div>
-            <div className="stat-row">
-              <span className="subtitle">注意：判负阈值</span>
-              <span className="stat-value">{failThreshold.toString()} 次失败</span>
-            </div>
-            <div className="stat-row">
-              <span className="subtitle">结束时间</span>
-              <span className="stat-value" style={{ fontSize: 13 }}>{schedule ? formatDate(schedule.endTime) : '—'}</span>
-            </div>
-            <div className="stat-row">
-              <span className="subtitle">裁判</span>
-              <span className="stat-value" style={{ fontSize: 12 }}>
-                {usesRealJudge ? 'AI Judge' : '自裁（演示）'}
-              </span>
-            </div>
-            <div className="stat-row">
-              <span className="subtitle">见证人</span>
-              <span className="stat-value" style={{ fontSize: 12 }}>
-                {witnessBound ? `${witness.slice(0, 6)}...${witness.slice(-4)}` : witnessSecret ? '待绑定' : '无'}
-              </span>
-            </div>
-          </div>
-
-          {/* Witness invite link (owner only, while unbound) */}
-          {!witnessBound && witnessSecret && (
-            <WitnessInvite link={witnessLink(pactId, witnessSecret)} />
-          )}
-
-          {/* Actions */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {canCheckin && (
-              <button className="btn btn-primary btn-block" onClick={() => setShowCamera(true)} disabled={busy}>
-                {busy ? <><span className="spinner" /> 处理中...</> : '今日打卡 '}
-              </button>
-            )}
-
-            {state === STATE.Active && !canCheckin && (
-              <div className="card" style={{ textAlign: 'center' }}>
-                <p className="subtitle">等待 Judge 裁决</p>
-              </div>
-            )}
-
-            {canSettle && (
-              <button className="btn btn-success btn-block" onClick={handleSettle} disabled={busy}>
-                {busy ? <><span className="spinner" /> 结算中...</> : '结算承诺'}
-              </button>
-            )}
-
-            {state === STATE.Created && (
-              <div className="card" style={{ textAlign: 'left' }}>
-                <p className="subtitle" style={{ marginBottom: 12, textAlign: 'center' }}>
-                  承诺已创建，质押尚未完成
-                </p>
-                <button
-                  className="btn btn-ghost btn-block"
-                  onClick={handleMintTestTokens}
-                  disabled={busy}
-                  style={{ marginBottom: 8 }}
-                >
-                  先领取测试 mUSD
-                </button>
-                <button
-                  className="btn btn-primary btn-block"
-                  onClick={handleFund}
-                  disabled={busy}
-                >
-                  {busy ? <><span className="spinner" /> 处理中...</> : `确认质押 ${formatUnits(stake, 6)} mUSD `}
-                </button>
-              </div>
-            )}
-          </div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <path d="M4 7h4l2-3 4 8 2-5h4v11H4z" />
+          </svg>
+          今日打卡
         </>
       )}
-    </div>
+    </button>
+  )
+
+  return (
+    <>
+      <div className="app-shell screen screen-detail">
+        <DetailTopNav onBack={() => nav('/dashboard')} badge={<span className={`state-badge ${STATE_CLASS[state]}`} role="status">{STATE_LABEL[state]}</span>} />
+
+        {showCamera ? (
+          <Camera challenge={challenge} onCapture={handleCheckin} onCancel={() => setShowCamera(false)} />
+        ) : (
+          <main className="detail-layout" aria-label="承诺详情">
+            <div className="detail-main">
+              <div className="detail-hero">
+                <div className="detail-hero-top">
+                  <div className="detail-meta-row">
+                    <SoloKindTag pactId={pactId} />
+                    <span className="stake-tag">{formatUnits(stake, 6)} mUSD</span>
+                  </div>
+                </div>
+
+                <h1 className="title">{titleText}</h1>
+
+                <div className="progress-panel" role="group" aria-label="打卡进度">
+                  <div className="progress-ring-wrap" aria-hidden="true">
+                    <svg className="progress-ring" viewBox="0 0 100 100">
+                      <circle className="progress-ring-bg" cx="50" cy="50" r={PROGRESS_RING_R} />
+                      <circle
+                        className="progress-ring-fill"
+                        cx="50"
+                        cy="50"
+                        r={PROGRESS_RING_R}
+                        strokeDasharray={PROGRESS_RING_C}
+                        strokeDashoffset={ringOffset}
+                      />
+                    </svg>
+                    <div className="progress-ring-label">
+                      <span className="progress-ring-num">{totalVerdict}</span>
+                      <span className="progress-ring-den">/ {totalRequired.toString()}</span>
+                    </div>
+                  </div>
+
+                  <div className="progress-stats">
+                    <div className="progress-stats-head">
+                      <span className="label">打卡进度</span>
+                      <span className="mono text-muted-sm">剩余 {daysLeft} 天</span>
+                    </div>
+                    <div
+                      className="progress-bar-lg"
+                      role="progressbar"
+                      aria-valuenow={Math.round(pct)}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-label={`完成 ${pct.toFixed(0)}%`}
+                    >
+                      <div className="progress-fill" style={{ width: `${pct}%` }} />
+                    </div>
+                    <div className="progress-mini-stats">
+                      <div className="progress-mini-stat">
+                        <span className="label">通过</span>
+                        <span className="val jade">{verdictPass.toString()}</span>
+                      </div>
+                      <div className="progress-mini-stat">
+                        <span className="label">失败</span>
+                        <span className="val fail">{verdictFail.toString()}</span>
+                      </div>
+                      <div className="progress-mini-stat">
+                        <span className="label">结束</span>
+                        <span className="val text-dim-sm">
+                          {schedule ? formatShortDate(schedule.endTime) : '—'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {aiResult && (
+                <div
+                  className={`result-banner ${aiResult.pass ? 'is-pass' : 'is-fail'}`}
+                  role="status"
+                  aria-live="polite"
+                >
+                  <div className={`result-icon ${aiResult.pass ? 'pass' : 'fail'}`} aria-hidden="true">
+                    {aiResult.pass ? (
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M18 6L6 18M6 6l12 12" />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="result-body">
+                    <p className="result-title">{aiResult.pass ? '今日打卡通过' : '今日打卡未通过'}</p>
+                    {aiResult.reasoning && <p className="result-sub">{aiResult.reasoning}</p>}
+                  </div>
+                </div>
+              )}
+
+              {canCheckin && (
+                <>
+                  <p className="label witness-hint" style={{ marginBottom: 'var(--sp-3)' }}>
+                    裁决由 AI Judge 签名上链，无需再次确认交易
+                  </p>
+                  <div className="bottom-bar desktop-inline">{checkinBtn}</div>
+                </>
+              )}
+
+              {state === STATE.Active && !canCheckin && (
+                <div className="status-panel">
+                  <div className="status-icon-lg" aria-hidden="true">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 7v5l3 2" />
+                    </svg>
+                  </div>
+                  <h2>等待 Judge 裁决</h2>
+                  <p className="status-lede">本承诺由其他参与方提交证据，Judge 审核中。</p>
+                </div>
+              )}
+
+              {canSettle && (
+                <button type="button" className="btn btn-success btn-block" onClick={handleSettle} disabled={busy}>
+                  {busy ? (
+                    <>
+                      <span className="spinner" /> 结算中...
+                    </>
+                  ) : (
+                    '结算承诺'
+                  )}
+                </button>
+              )}
+
+              <CheckinTimeline pactId={pactId} total={totalVerdict} />
+
+              {!witnessBound && witnessSecret && (
+                <div className="witness-card mobile-only witness-card--tail">
+                  <WitnessInvite link={witnessLink(pactId, witnessSecret)} pactId={pactId} compact />
+                </div>
+              )}
+            </div>
+
+            <aside className="detail-sidebar desktop-only" aria-label="侧栏信息">
+              <div className="sidebar-card">
+                <p className="label section-label">统计</p>
+                <div className="sidebar-stat-row">
+                  <div className="sidebar-stat">
+                    <p className="label">通过</p>
+                    <p className="value mono text-jade">{verdictPass.toString()}</p>
+                  </div>
+                  <div className="sidebar-stat">
+                    <p className="label">失败</p>
+                    <p className="value mono text-fail">{verdictFail.toString()}</p>
+                  </div>
+                  <div className="sidebar-stat">
+                    <p className="label">结束</p>
+                    <p className="value text-dim-sm">{schedule ? formatShortDate(schedule.endTime) : '—'}</p>
+                  </div>
+                  <div className="sidebar-stat">
+                    <p className="label">裁判</p>
+                    <p className="value mono text-dim-xs">{usesRealJudge ? '#48' : '—'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {!witnessBound && witnessSecret && (
+                <div className="witness-card">
+                  <WitnessInvite link={witnessLink(pactId, witnessSecret)} pactId={pactId} />
+                </div>
+              )}
+
+              <div className="sidebar-card">
+                <p className="label section-label">合约摘要</p>
+                <dl className="contract-dl">
+                  <div className="contract-row">
+                    <dt>质押</dt>
+                    <dd className="mono-gold">{formatUnits(stake, 6)} mUSD</dd>
+                  </div>
+                  <div className="contract-row">
+                    <dt>开始</dt>
+                    <dd className="mono text-dim-sm">
+                      {schedule?.startTime ? formatShortDate(schedule.startTime) : '—'}
+                    </dd>
+                  </div>
+                  <div className="contract-row">
+                    <dt>周期</dt>
+                    <dd>
+                      {totalRequired.toString()} 次 · 每日 1 次
+                    </dd>
+                  </div>
+                  <div className="contract-row">
+                    <dt>免卡券</dt>
+                    <dd>
+                      {Number(restCards) - Number(restUsed)}/{restCards.toString()} 剩余
+                    </dd>
+                  </div>
+                  <div className="contract-row">
+                    <dt>判负阈值</dt>
+                    <dd>{failThreshold.toString()} 次失败</dd>
+                  </div>
+                  <div className="contract-row">
+                    <dt>结束时间</dt>
+                    <dd className="mono text-dim-sm">{schedule ? formatDate(schedule.endTime) : '—'}</dd>
+                  </div>
+                  <div className="contract-row">
+                    <dt>裁判</dt>
+                    <dd>{usesRealJudge ? 'AI Judge #48' : '自裁（演示）'}</dd>
+                  </div>
+                  <div className="contract-row">
+                    <dt>见证人</dt>
+                    <dd className="mono text-dim-xs">
+                      {witnessBound
+                        ? `${witness.slice(0, 6)}…${witness.slice(-4)}`
+                        : witnessSecret
+                          ? '待绑定'
+                          : '无'}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            </aside>
+          </main>
+        )}
+      </div>
+
+      {showMobileBar && canCheckin && (
+        <div className="bottom-bar mobile-only">{checkinBtn}</div>
+      )}
+    </>
   )
 }
 
@@ -618,23 +782,48 @@ function parseUnits(s: string, d: number): bigint {
   return BigInt(int) * BigInt(10 ** d) + BigInt(padded)
 }
 
-function WitnessInvite({ link }: { link: string }) {
+function WitnessInvite({ link, compact, pactId }: { link: string; compact?: boolean; pactId: bigint }) {
   const [copied, setCopied] = useState(false)
   async function copy() {
     try { await navigator.clipboard.writeText(link) } catch { /* ignore */ }
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
+  if (compact) {
+    return (
+      <>
+        <p className="title-line">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          见证人邀请
+        </p>
+        <p className="subtitle text-subtle">承诺 #{pactId.toString()} · 一位好友可监督 AI 裁决，争议时触发旗舰复核。</p>
+        <button type="button" className={`btn btn-ghost btn-block btn-sm${copied ? ' is-copied' : ''}`} onClick={copy}>
+          {copied ? '已复制链接' : '复制邀请链接'}
+        </button>
+      </>
+    )
+  }
   return (
-    <div className="card" style={{ borderColor: 'var(--accent)', marginBottom: 12 }}>
-      <div style={{ fontWeight: 600, marginBottom: 6, color: 'var(--accent)' }}>见证人邀请</div>
-      <p className="subtitle" style={{ fontSize: 13, marginBottom: 12 }}>
-        把链接发给一位朋友，Ta 绑定后可旁观你的进度。凭证只在链接里（# 后），不经服务器。
+    <>
+      <p className="title-line">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+        见证人邀请
       </p>
-      <button className="btn btn-primary btn-block" onClick={copy}>
+      <p className="subtitle text-subtle">
+        承诺 #{pactId.toString()} · 把链接发给一位朋友，Ta 绑定后可旁观你的进度。凭证只在链接里，不经服务器。
+      </p>
+      <button type="button" className={`btn btn-ghost btn-block btn-sm${copied ? ' is-copied' : ''}`} onClick={copy}>
         {copied ? '已复制链接' : '复制邀请链接'}
       </button>
-    </div>
+    </>
   )
 }
 

@@ -7,13 +7,12 @@ export const JUDGE_ADDRESS       = (import.meta.env.VITE_JUDGE_ADDRESS ?? '') as
 export const JUDGE_URL           = (import.meta.env.VITE_JUDGE_URL ?? 'http://localhost:3001') as string
 
 // Judge's ERC-8004 on-chain agent identity (registered on Injective testnet's
-// canonical IdentityRegistry). 8004scan.io has not indexed chain 1439 agents yet
-// (their /agent/eip155:… URL 404s); link to Blockscout NFT instance instead.
-export const JUDGE_AGENT_ID      = (import.meta.env.VITE_JUDGE_AGENT_ID ?? '') as string
-const ERC8004_TESTNET_REGISTRY   = '0x8004A818BFB912233c491871b3d84c89A494BD9e'
-export const judgeScanUrl        = JUDGE_AGENT_ID
-  ? `https://testnet.blockscout.injective.network/token/${ERC8004_TESTNET_REGISTRY}/instance/${JUDGE_AGENT_ID}`
-  : ''
+// canonical IdentityRegistry). Public proof link: Blockscout NFT instance page.
+export const JUDGE_AGENT_ID        = (import.meta.env.VITE_JUDGE_AGENT_ID ?? '') as string
+const ERC8004_TESTNET_REGISTRY     = '0x8004A818BFB912233c491871b3d84c89A494BD9e'
+export const JUDGE_BLOCKSCOUT_URL  =
+  `https://testnet.blockscout.injective.network/token/${ERC8004_TESTNET_REGISTRY}/instance/${JUDGE_AGENT_ID || '48'}`
+export const judgeScanUrl          = JUDGE_BLOCKSCOUT_URL
 
 // ERC-8004 ReputationRegistry (Injective testnet, canonical). Users give feedback on
 // the Judge agent here (client → agent). Address verified against the agent-sdk's

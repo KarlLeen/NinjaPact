@@ -21,7 +21,7 @@ export function Camera({ challenge, onCapture, onCancel, hint = '实时验证指
     setError(null)
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 960 } },
+        video: { facingMode: 'environment', width: { ideal: 960 }, height: { ideal: 720 } },
         audio: false,
       })
       streamRef.current = stream
@@ -48,7 +48,7 @@ export function Camera({ challenge, onCapture, onCancel, hint = '实时验证指
     c.width = v.videoWidth
     c.height = v.videoHeight
     c.getContext('2d')!.drawImage(v, 0, 0)
-    const dataUrl = c.toDataURL('image/jpeg', 0.8)
+    const dataUrl = c.toDataURL('image/jpeg', 0.72)
     setCaptured(dataUrl)
     streamRef.current?.getTracks().forEach(t => t.stop())
   }

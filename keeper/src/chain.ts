@@ -1,12 +1,22 @@
-import { createPublicClient, createWalletClient, http, defineChain } from 'viem'
+import { createPublicClient, createWalletClient, http, fallback, defineChain } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
+
+const RPC_URLS = [
+  process.env.RPC_URL,
+  'https://testnet.sentry.chain.json-rpc.injective.network',
+  'https://k8s.testnet.json-rpc.injective.network',
+].filter(Boolean) as string[]
+
+const rpcTransport = fallback(
+  RPC_URLS.map(url => http(url, { timeout: 20_000, retryCount: 1 })),
+)
 
 const injectiveTestnet = defineChain({
   id: 1439,
   name: 'Injective EVM Testnet',
-  nativeCurrency: { name: 'Injective', symbol: 'INJ', decimals: 18 },
+  nativeCurrency: { name: 'INJ', symbol: 'INJ', decimals: 18 },
   rpcUrls: {
-    default: { http: [process.env.RPC_URL ?? 'https://testnet.sentry.chain.json-rpc.injective.network'] },
+    default: { http: RPC_URLS },
   },
 })
 
@@ -16,8 +26,8 @@ export const account = privateKeyToAccount(
   (process.env.KEEPER_PRIVATE_KEY ?? '0x0') as `0x${string}`
 )
 
-export const publicClient = createPublicClient({ chain: injectiveTestnet, transport: http() })
-export const walletClient = createWalletClient({ account, chain: injectiveTestnet, transport: http() })
+export const publicClient = createPublicClient({ chain: injectiveTestnet, transport: rpcTransport })
+export const walletClient = createWalletClient({ account, chain: injectiveTestnet, transport: rpcTransport })
 
 export const KEEPER_ABI = [
   {

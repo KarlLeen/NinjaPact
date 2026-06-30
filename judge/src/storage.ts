@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync, readFileSync, readdirSync, existsSync } from 'fs'
+import { mkdirSync, writeFileSync, readFileSync, readdirSync, existsSync, accessSync, constants } from 'fs'
 import { join } from 'path'
 import { createHash } from 'crypto'
 import { encryptBlob, decryptBlobOrRaw } from './cryptobox.js'
@@ -6,6 +6,13 @@ import { encryptBlob, decryptBlobOrRaw } from './cryptobox.js'
 const EVIDENCE_DIR = process.env.EVIDENCE_DIR ?? join(process.cwd(), 'evidence')
 
 mkdirSync(EVIDENCE_DIR, { recursive: true })
+try {
+  accessSync(EVIDENCE_DIR, constants.W_OK)
+} catch {
+  console.error(
+    `[storage] EVIDENCE_DIR not writable: ${EVIDENCE_DIR} — run: chown -R ubuntu:ubuntu ${EVIDENCE_DIR}`,
+  )
+}
 
 export interface VerdictArchive {
   commitmentId: string

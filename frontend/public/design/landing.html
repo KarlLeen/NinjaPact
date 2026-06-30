@@ -2,43 +2,483 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>忍者之约</title>
-  <link rel="stylesheet" href="styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>忍者之约 · NinjaPact — The Commitment Layer</title>
+  <meta name="description" content="链上承诺 · AI 裁决 · 自动结算。Built on Injective EVM。" />
+  <link rel="stylesheet" href="landing-marketing.css" />
 </head>
 <body>
-  <div class="app-shell screen-centered landing-layout">
-    <div class="landing-brand">
-      <div class="mark" style="margin-bottom: 24px;" aria-hidden="true">
-        <span class="mark-char">忍</span>
+  <nav class="mk-nav" aria-label="主导航">
+    <div class="mk-nav-inner">
+      <a class="mk-brand" href="#top">
+        <span class="mk-mark" aria-hidden="true">忍</span>
+        NinjaPact
+      </a>
+      <ul class="mk-nav-links">
+        <li><a href="#problem">问题</a></li>
+        <li><a href="#why-now">时机</a></li>
+        <li><a href="#solution">方案</a></li>
+        <li><a href="#business">商业</a></li>
+        <li><a href="#how">流程</a></li>
+        <li><a href="#roadmap">进度</a></li>
+      </ul>
+      <a class="mk-btn mk-btn-primary" href="dashboard.html">进入 App</a>
+    </div>
+  </nav>
+
+  <main id="top">
+    <!-- Page 1 — Cover -->
+    <header class="mk-hero">
+      <div class="mk-hero-glow" aria-hidden="true"></div>
+      <div class="mk-hero-inner mk-reveal">
+        <p class="mk-hero-en">The Commitment Layer</p>
+        <h1 class="mk-h1">忍者之约<br />NinjaPact</h1>
+        <p class="mk-lede">链上承诺 · AI 裁决 · 自动结算</p>
+        <div class="mk-badge-row">
+          <span class="mk-badge"><span class="mk-badge-dot"></span>Built on Injective EVM</span>
+        </div>
+        <div class="mk-hero-actions">
+          <a class="mk-btn mk-btn-jade mk-btn-lg" href="https://www.limlamleen.com/dashboard">
+            进入 App
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a class="mk-btn mk-btn-ghost mk-btn-lg" href="#how">了解如何运作</a>
+        </div>
+        <figure class="mk-hero-visual">
+          <img src="mqze5hua-image.png" alt="承诺详情页 — 进度环、今日打卡通过、Judge 链上确认" width="1200" height="675" loading="eager" />
+        </figure>
       </div>
+    </header>
 
-      <h1 class="display" style="margin-bottom: 12px;">忍者之约</h1>
-      <p class="lede" style="margin-bottom: 8px;">用自律立约，用代码守诺</p>
-      <p class="subtitle" style="font-size: 13px; margin-bottom: 0;">质押稳定币 · AI 验收 · 链上结算</p>
+    <!-- Page 2 — Problem -->
+    <section class="mk-section mk-section--dark" id="problem">
+      <div class="mk-container mk-reveal">
+        <p class="mk-eyebrow">Problem</p>
+        <h2 class="mk-h2">承诺从来没有<br />可信的执行层</h2>
 
-      <p class="label desktop-only" style="margin-top: 28px; max-width: 36ch; line-height: 1.5; text-transform: none; letter-spacing: 0;">
-        社交登录 · 自动生成钱包 · 无需助记词
-      </p>
-    </div>
+        <div class="mk-narrative">
+          <p class="mk-narrative-lede">社会只给两种承诺配了牙齿：</p>
+          <ul class="mk-narrative-list">
+            <li>大额合同归法律（但诉讼成本让万元以下不值得打官司）</li>
+            <li>平台内承诺归平台（出了平台就管不着）</li>
+          </ul>
+          <p>剩下的呢？朋友间 50 块的代办、答应粉丝的周更、小额交付合同——<strong class="mk-nowrap">违约的社会成本被默认为零</strong></p>
+          <p class="mk-narrative-foot">不是没人想管，是管不起：人工裁决一单纠纷的成本，远高于 200 块的标的</p>
+        </div>
 
-    <div class="stack landing-actions">
-      <button type="button" class="btn btn-primary btn-block" id="enter-btn">
-        开始立约
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-      </button>
-      <button type="button" class="btn btn-ghost btn-block">登录后领取测试 mUSD</button>
+        <div class="mk-divider"></div>
 
-      <p class="label mobile-only" style="margin-top: 28px; max-width: 260px; line-height: 1.5; text-transform: none; letter-spacing: 0;">
-        社交登录 · 自动生成钱包 · 无需助记词
-      </p>
-    </div>
-  </div>
+        <h3 class="mk-h3-light">在位者验证了需求，但修不了根本缺陷</h3>
+        <div class="mk-narrative">
+          <p>Forfeit · StickK · Beeminder——三家做「习惯承诺」的 Web2 产品，合计运营超 18 年。模式相同：你承诺目标，押钱，失败了钱归平台。</p>
+          <blockquote class="mk-quote">Beeminder FAQ 原话：「收罚金就是我们的商业模式」</blockquote>
+          <p><strong>裁判兼庄家</strong>——判你失败，它就赚钱。这个利益结构，Web2 在位者永远修不了。修了就杀死自己的商业模式。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Page 3 — Why Now -->
+    <section class="mk-section" id="why-now">
+      <div class="mk-container mk-reveal">
+        <p class="mk-eyebrow">Why Now</p>
+        <h2 class="mk-h2">三条线在 2025–26 年<br />第一次同年交汇</h2>
+        <div class="mk-grid-3">
+          <article class="mk-card">
+            <p class="mk-card-num">01</p>
+            <h3>AI 裁决成本归零</h3>
+            <p>多模态证据验证打到几分钱。两年前用 GPT-4V 做同样的事，费率倒挂，商业上不成立。</p>
+          </article>
+          <article class="mk-card">
+            <p class="mk-card-num">02</p>
+            <h3>执行成本归零</h3>
+            <p>稳定币 + Injective 近零 gas。托管和结算不再需要任何机构。</p>
+          </article>
+          <article class="mk-card">
+            <p class="mk-card-num">03</p>
+            <h3>入口成熟</h3>
+            <p>嵌入式钱包与账户抽象。普通人第一次用得起链。</p>
+          </article>
+        </div>
+        <p class="mk-callout">这个产品在 2024 年之前造不出来 · 在 2027 年之后轮不到我们造</p>
+      </div>
+    </section>
+
+    <!-- Page 4 — Solution -->
+    <section class="mk-section mk-section--alt" id="solution">
+      <div class="mk-container mk-reveal">
+        <p class="mk-eyebrow">Solution</p>
+        <h2 class="mk-h2">把承诺变成<br />链上可执行对象</h2>
+        <p class="mk-lede">同一个引擎，两种承诺都能执行</p>
+        <div class="mk-grid-3">
+          <article class="mk-card">
+            <p class="mk-card-num">01</p>
+            <h3>链上托管</h3>
+            <p>资金进合约，无人可动。</p>
+          </article>
+          <article class="mk-card">
+            <p class="mk-card-num">02</p>
+            <h3>AI Judge</h3>
+            <p>多模态验收 / 交付仲裁，EIP-712 签名，裁决上链可审计。</p>
+          </article>
+          <article class="mk-card">
+            <p class="mk-card-num">03</p>
+            <h3>自动结算</h3>
+            <p>成功退本金 + 守诺勋章；失败锁定 6 个月后退还，永不罚没。</p>
+          </article>
+        </div>
+
+        <div class="mk-mechanism">
+          <h3 class="mk-h3">机制设计的两刀</h3>
+          <div class="mk-grid-2">
+            <article class="mk-mechanism-card">
+              <h4>伪造证据骗过裁判</h4>
+              <p>你「偷」到的只是自己的钱提前六个月解锁。时间价值不到几块钱，低于伪造成本——攻击在经济上不成立。</p>
+            </article>
+            <article class="mk-mechanism-card">
+              <h4>AI 判错的代价也只是流动性</h4>
+              <p>不是本金。最难做好的组件被机制设计降级为非关键组件，v1 即可安全上线。</p>
+            </article>
+          </div>
+          <p class="mk-mechanism-foot">裁判 · 托管 · 受益人 — 三权分立，上链可查</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Page 5 — Business Model -->
+    <section class="mk-section" id="business">
+      <div class="mk-container mk-reveal">
+        <p class="mk-eyebrow">Business Model</p>
+        <h2 class="mk-h2">从第一单起自负盈亏<br />随交易量复利</h2>
+        <div class="mk-stages">
+          <article class="mk-stage">
+            <p class="mk-stage-label">阶段一</p>
+            <h3>固定服务费</h3>
+            <p>成本价 +，覆盖 AI token 成本，第一单起正向现金流</p>
+          </article>
+          <article class="mk-stage">
+            <p class="mk-stage-label">阶段二</p>
+            <h3>浮存金收益</h3>
+            <p>托管资金在合约锁定期间产生的链上收益，透明可查</p>
+          </article>
+          <article class="mk-stage">
+            <p class="mk-stage-label">阶段三</p>
+            <h3>GMV 抽成（核心生意）</h3>
+            <p>每一笔经过引擎的交易留下费率。随交易量复利，不依赖用户失败</p>
+          </article>
+          <article class="mk-stage">
+            <p class="mk-stage-label">长期</p>
+            <h3>履约征信查询</h3>
+            <p>判例库 + 履约信用图谱 — 为法律够不着的领域建征信局</p>
+          </article>
+        </div>
+
+        <div class="mk-assets">
+          <h3 class="mk-h3">护城河资产</h3>
+          <ul class="mk-assets-list">
+            <li><strong>判例库</strong> — 普通法式积累，裁决越多越一致</li>
+            <li><strong>履约信用图谱</strong> — 在交易场景里即卖家信誉</li>
+            <li><strong>证据集成网络</strong> — 健康 app / GitHub / 物流 API，越接越宽</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Page 6 — Flywheel -->
+    <section class="mk-section mk-section--alt" id="flywheel">
+      <div class="mk-container mk-reveal">
+        <p class="mk-eyebrow">Moat</p>
+        <h2 class="mk-h2">护城河 = Judge 的链上声誉<br />越跑越厚</h2>
+        <div class="mk-flow">
+          <div class="mk-flow-step">
+            <span class="mk-flow-arrow">1</span>
+            <div class="mk-flow-body">
+              <h4>Habit 用户（低门槛入口，零冷启动）</h4>
+            </div>
+          </div>
+          <div class="mk-flow-step">
+            <span class="mk-flow-arrow">2</span>
+            <div class="mk-flow-body">
+              <h4>每次裁决，Judge on-chain reputation +1</h4>
+              <p>判例库积累，AI 判准率提升</p>
+            </div>
+          </div>
+          <div class="mk-flow-step">
+            <span class="mk-flow-arrow">3</span>
+            <div class="mk-flow-body">
+              <h4>Escrow 客户自然导入</h4>
+              <p>信任已建立，客单价更高</p>
+            </div>
+          </div>
+          <div class="mk-flow-step">
+            <span class="mk-flow-arrow">4</span>
+            <div class="mk-flow-body">
+              <h4>Judge 成为 ERC-8004 注册 Agent</h4>
+              <p>声誉链上可查</p>
+            </div>
+          </div>
+          <div class="mk-flow-step">
+            <span class="mk-flow-arrow">5</span>
+            <div class="mk-flow-body">
+              <h4>第三方 agent 调用 Judge 做验收</h4>
+              <p>Agent 间经济活动的公共验收基础设施</p>
+            </div>
+          </div>
+        </div>
+        <p class="mk-moat">竞争对手可以复制合约，无法复制链上声誉</p>
+        <p class="mk-analogy">支付宝从淘宝的担保交易长成支付帝国 — 担保是入口，结算是生意</p>
+      </div>
+    </section>
+
+    <!-- Page 7 — How it Works -->
+    <section class="mk-section" id="how">
+      <div class="mk-container">
+        <div class="mk-reveal">
+          <p class="mk-eyebrow">How it Works</p>
+          <h2 class="mk-h2">三步，任何人都能用</h2>
+        </div>
+        <div class="mk-steps">
+          <article class="mk-step mk-reveal">
+            <div class="mk-step-text">
+              <p class="mk-step-num">STEP 01</p>
+              <h3>立约</h3>
+              <p>用自然语言描述目标，AI 生成承诺摘要。质押稳定币进合约，规则写死上链。</p>
+            </div>
+            <div class="mk-step-visual">
+              <div class="mk-shot">
+                <img src="mqze44fs-image.png" alt="立约对话页 — AI 生成承诺摘要卡" width="800" height="450" loading="lazy" />
+              </div>
+              <p class="mk-shot-caption">立约对话页 · AI 生成承诺摘要卡</p>
+            </div>
+          </article>
+          <article class="mk-step mk-reveal">
+            <div class="mk-step-text">
+              <p class="mk-step-num">STEP 02</p>
+              <h3>AI 验收</h3>
+              <p>每日上传证据 / 提交交付物 + demo 链接。Judge 多模态审核，EIP-712 签名裁决上链。</p>
+            </div>
+            <div class="mk-step-visual">
+              <div class="mk-shot">
+                <img src="mqze5hua-image.png" alt="打卡页 — Judge 裁决 banner" width="800" height="450" loading="lazy" />
+              </div>
+              <p class="mk-shot-caption">打卡页 · Judge 裁决 banner</p>
+            </div>
+          </article>
+          <article class="mk-step mk-reveal">
+            <div class="mk-step-text">
+              <p class="mk-step-num">STEP 03</p>
+              <h3>自动结算</h3>
+              <p>条件满足 → 合约自动执行，无需任何人审批。</p>
+            </div>
+            <div class="mk-step-visual">
+              <div class="mk-shot">
+                <img src="mqze685u-image.png" alt="成功状态 — 守诺勋章" width="800" height="450" loading="lazy" />
+              </div>
+              <p class="mk-shot-caption">成功状态 · 守诺勋章</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Page 8 — Tech -->
+    <section class="mk-section mk-section--alt" id="tech">
+      <div class="mk-container mk-reveal">
+        <p class="mk-eyebrow">Architecture</p>
+        <h2 class="mk-h2">技术架构</h2>
+        <pre class="mk-arch" aria-label="系统架构"><span class="c">用户 (Privy 嵌入式钱包)</span>
+    ↓ 自然语言立约 / 上传证据 / 提交交付
+<span class="k">Judge 服务</span> (Node.js · TypeScript)
+    ├── SOLO：GLM-4V 视觉验收（每日证据）
+    ├── Escrow：GLM 文本仲裁（vs 验收标准）
+    ├── EIP-712 签名裁决
+    └── ERC-8004 on-chain identity · <span class="a">Agent #48</span>
+
+<span class="k">NinjaPact 合约</span> (Injective EVM · chainId 1439)
+    ├── SOLO 状态机：进行中 → 成功/失败 → 锁定 → 可领取
+    └── Escrow 状态机：交付 → 验收 → 修改 → 仲裁 → 结算</pre>
+        <p class="mk-contract">合约地址：0x88d50C6e0701AB68AF180a8b98D673EBf80850fE</p>
+        <p class="mk-lede mk-lede--spaced">两个业务场景，共用同一个 Judge 引擎。每一次裁决积累同一个 Agent 的链上声誉。</p>
+      </div>
+    </section>
+
+    <!-- Page 9 — Product -->
+    <section class="mk-section" id="product">
+      <div class="mk-container mk-reveal">
+        <p class="mk-eyebrow">Product</p>
+        <h2 class="mk-h2">产品截图</h2>
+        <div class="mk-shots">
+          <figure class="mk-shot-card">
+            <img src="mqze44fs-image.png" alt="立约对话页 — AI 对话与承诺摘要" loading="lazy" />
+            <figcaption>立约对话页 — AI 对话 + 承诺摘要卡</figcaption>
+          </figure>
+          <figure class="mk-shot-card">
+            <img src="mqze5hua-image.png" alt="打卡 / 交付页 — Judge 裁决 banner" loading="lazy" />
+            <figcaption>打卡 / 交付页 — Judge 裁决 banner</figcaption>
+          </figure>
+          <figure class="mk-shot-card mk-shot-card--mock">
+            <div class="mk-product-mock" aria-label="履约档案页示意">
+              <div class="mk-app-mock mk-app-mock--inline">
+                <div class="mk-app-mock-head">
+                  <span class="mk-app-mock-title">履约档案</span>
+                </div>
+                <div class="mk-app-mock-body">
+                  <div class="mk-rank-ring">
+                    <span class="mk-rank-mark" aria-hidden="true">忍</span>
+                  </div>
+                  <p class="mk-rank-name">绿带</p>
+                  <p class="mk-rank-hint">守诺勋章 · 履约率 83%</p>
+                  <div class="mk-judge-id-card">
+                    <p class="mk-judge-id-label">Judge · ERC-8004</p>
+                    <p class="mk-judge-id-name">Agent #48</p>
+                    <p class="mk-judge-id-desc">裁决公正率 92% · 链上身份可查</p>
+                    <div class="mk-judge-id-link">给裁判打分 · giveFeedback</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <figcaption>履约档案页 — 段位圆环 + 守诺勋章 + Judge ERC-8004 身份卡</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- Page 10 — Why Injective -->
+    <section class="mk-section mk-section--dark" id="injective">
+      <div class="mk-container mk-reveal">
+        <p class="mk-eyebrow">Why Injective</p>
+        <h2 class="mk-h2">小额承诺结算<br />是 Injective 金融 DNA 最自然的延伸</h2>
+        <p class="mk-lede">不是在通用链上强行部署，而是在做它本该有的那一层</p>
+        <div class="mk-stat-row">
+          <div class="mk-stat">
+            <p class="mk-stat-value is-jade">$0.00008</p>
+            <p class="mk-stat-label">单笔 tx → $20 承诺合约第一次经济上成立</p>
+          </div>
+          <div class="mk-stat">
+            <p class="mk-stat-value is-jade">0.64s</p>
+            <p class="mk-stat-label">出块 → 裁决瞬间确认。用户感知是 Web2 体验，底层链上不可篡改</p>
+          </div>
+          <div class="mk-stat">
+            <p class="mk-stat-value is-jade">结算层</p>
+            <p class="mk-stat-label">Injective = 金融结算层 → 承诺结算天然契合。同一个基因：条件满足 → 资金自动流转</p>
+          </div>
+        </div>
+
+        <div class="mk-funnel">
+          <h3 class="mk-h3-light">对 Injective 的双向漏斗</h3>
+          <ul class="mk-funnel-list">
+            <li><strong>自律入口</strong> — 把圈外人静默带进 Injective（嵌入式钱包，登录即开户）</li>
+            <li><strong>担保层</strong> — 把真实结算量与稳定币沉淀留在 Injective 上</li>
+          </ul>
+          <p class="mk-funnel-foot">一头带人，一头带钱</p>
+          <p class="mk-funnel-long">长期：当 Injective 上的 agent 开始互相雇佣，Judge 就是现成的验收层</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Page 11 — Market -->
+    <section class="mk-section" id="market">
+      <div class="mk-container mk-reveal">
+        <p class="mk-eyebrow">Market</p>
+        <h2 class="mk-h2">已验证市场</h2>
+        <div class="mk-market-lead">
+          <p><strong>Forfeit</strong> — 手机端习惯承诺 App，失败截图直接扣款</p>
+          <div class="mk-grid-2">
+            <div class="mk-stat">
+              <p class="mk-stat-value is-gold">686,000</p>
+              <p class="mk-stat-label">承诺次数</p>
+            </div>
+            <div class="mk-stat">
+              <p class="mk-stat-value is-gold">$8.7M</p>
+              <p class="mk-stat-label">质押总额 · 单一平台，对立模型，仍然跑出这个规模</p>
+            </div>
+          </div>
+        </div>
+        <p class="mk-lede mk-lede--spaced">我们的市场 = 相同需求 × 链上可信执行 × 小额门槛打穿</p>
+        <div class="mk-narrative mk-narrative--light">
+          <p>每个微信 / Telegram 大群里都坐着一个收 1–5% 的人肉中间人 — 代购、约稿、接单、链上资产 OTC — 全靠江湖信誉裸奔。</p>
+          <p>AI 把单笔裁决成本打到几分钱后，<strong>$20 的交易第一次担保得起</strong>。</p>
+        </div>
+        <p class="mk-sub">想象空间：不预测具体数字 — 随 Injective agent 经济增长，每一笔 agent 间活动需要验收，Judge 就在那里。</p>
+      </div>
+    </section>
+
+    <!-- Page 12 — Roadmap -->
+    <section class="mk-section mk-section--alt" id="roadmap">
+      <div class="mk-container mk-reveal">
+        <p class="mk-eyebrow">Progress</p>
+        <h2 class="mk-h2">进度 + Roadmap</h2>
+        <div class="mk-roadmap">
+          <div class="mk-road-col">
+            <h3>已完成 · 技术可验</h3>
+            <ul class="mk-checklist">
+              <li>NinjaPact 合约部署 Injective EVM testnet</li>
+              <li>SOLO 全流程闭环（立约 → 打卡 → AI 裁决 → 结算）</li>
+              <li>Escrow 全流程闭环（交付 → 仲裁 → 放款）</li>
+              <li>AI Judge ERC-8004 注册 · Agent #48（8004scan 可查）</li>
+              <li>上线 limlamleen.com</li>
+              <li>Solo builder + AI 工具链，从零到全栈闭环</li>
+            </ul>
+          </div>
+          <div class="mk-road-col">
+            <h3>Next · 生态扩展</h3>
+            <ul class="mk-checklist mk-next-list">
+              <li>Injective mainnet 部署</li>
+              <li>开放 Judge API · 任何第三方 agent 可调用 Judge 做验收</li>
+              <li>Judge 成为 Injective agent 生态的公共验收基础设施</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Page 13 — CTA -->
+    <section class="mk-cta mk-reveal" id="cta" aria-labelledby="cta-title">
+      <div class="mk-container">
+        <h2 class="mk-h2" id="cta-title">现在就试</h2>
+        <a class="mk-btn mk-btn-jade mk-btn-lg mk-cta-primary" href="https://www.limlamleen.com">limlamleen.com</a>
+        <div class="mk-cta-links">
+          <div class="mk-cta-link-row">
+            <span class="mk-cta-link-label">Judge API 合作 / 联系</span>
+            <a href="mailto:limlamleen@gmail.com">limlamleen@gmail.com</a>
+          </div>
+          <div class="mk-cta-link-row">
+            <span class="mk-cta-link-label">开源代码</span>
+            <a href="https://github.com/KarlLeen/NinjaPact/tree/main" target="_blank" rel="noreferrer">github.com/KarlLeen/NinjaPact</a>
+          </div>
+        </div>
+        <p class="mk-cta-tagline">The Commitment Layer · Built on Injective</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="mk-footer">
+    NinjaPact · limlamleen.com · Injective EVM testnet · Agent #48
+  </footer>
 
   <script>
-    document.getElementById('enter-btn').addEventListener('click', function () {
-      window.location.href = 'dashboard.html';
-    });
+    (function () {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.querySelectorAll('.mk-reveal').forEach(function (el) {
+          el.classList.add('is-visible');
+        });
+        return;
+      }
+      if (!('IntersectionObserver' in window)) {
+        document.querySelectorAll('.mk-reveal').forEach(function (el) {
+          el.classList.add('is-visible');
+        });
+        return;
+      }
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) {
+            e.target.classList.add('is-visible');
+            io.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+      document.querySelectorAll('.mk-reveal').forEach(function (el) { io.observe(el); });
+    })();
   </script>
 </body>
 </html>

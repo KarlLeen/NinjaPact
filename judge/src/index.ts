@@ -226,6 +226,7 @@ app.get('/verdict/:id/:dayIndex', (req, res) => {
     challenge: a.challenge,
     reReview: a.reReview ?? false,
     dayIndex: a.dayIndex,
+    timestamp: a.timestamp,
   })
 })
 
@@ -296,7 +297,15 @@ app.post('/evidence', requireAuth, async (req, res) => {
   const kind = info.mode === 4 ? 'escrow' : 'habit' // DEPOSIT → delivery-acceptance prompt
 
   // Persist the raw photo (encrypted-at-rest concern noted; plaintext for MVP) and hash it
-  const { imageSha256, imagePath } = saveImage(commitmentId, dayIndex, image)
+  let imageSha256: string
+  let imagePath: string
+  try {
+    ({ imageSha256, imagePath } = saveImage(commitmentId, dayIndex, image))
+  } catch (e) {
+    console.error('[evidence] saveImage failed:', e)
+    res.status(500).json({ error: `无法保存证据（目录权限？）: ${String(e)}` })
+    return
+  }
 
   // Call GLM vision AI
   let verdict

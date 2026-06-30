@@ -7,6 +7,7 @@ import {
   NINJA_PACT_ADDRESS, MOCK_USD_ADDRESS, JUDGE_ADDRESS, JUDGE_URL, MODE,
 } from '../lib/contracts'
 import { useToast } from '../lib/toast'
+import { waitReceipt } from '../lib/tx'
 import { saveTerms } from '../lib/terms'
 import { makeWitnessSecret, witnessHash, storeWitnessSecret } from '../lib/witness'
 import { makeDeliverSecret, deliverHash, storeDeliverSecret } from '../lib/deliver'
@@ -133,7 +134,7 @@ export function CreatePact() {
         abi: MOCK_USD_ABI, address: MOCK_USD_ADDRESS, functionName: 'approve',
         args: [NINJA_PACT_ADDRESS, stakeAmount],
       })
-      await publicClient.waitForTransactionReceipt({ hash: approveTx })
+      await waitReceipt(approveTx)
 
       toast('步骤 2/3：创建承诺...', 'info')
       const createTx = await writeContractAsync({
@@ -153,7 +154,7 @@ export function CreatePact() {
           witnessInviteHash, zeroHash, 0n,
         ],
       })
-      await publicClient.waitForTransactionReceipt({ hash: createTx })
+      await waitReceipt(createTx)
 
       toast('步骤 3/3：质押资金...', 'info')
       const ids = await publicClient.readContract({
@@ -164,7 +165,7 @@ export function CreatePact() {
       const fundTx = await writeContractAsync({
         abi: NINJA_PACT_ABI, address: NINJA_PACT_ADDRESS, functionName: 'fund', args: [newId],
       })
-      await publicClient.waitForTransactionReceipt({ hash: fundTx })
+      await waitReceipt(fundTx)
 
       // Store refined terms locally + on Judge server (cross-device, hash-gated)
       await saveTerms(newId, termsText)
@@ -183,17 +184,20 @@ export function CreatePact() {
   const showInput = !proposal && !creating
 
   return (
-    <div className="screen">
-      <div className="nav">
-        <button className="nav-back" onClick={() => nav('/dashboard')}>← 返回</button>
-        <span style={{ fontSize: 15, color: 'var(--text-dim)' }}>立新承诺</span>
-      </div>
+    <div className="app-shell screen screen-create">
+      <header className="top-nav">
+        <button type="button" className="nav-back" onClick={() => nav('/dashboard')}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+          返回
+        </button>
+        <span className="title top-nav-title">创建立约</span>
+        <span className="nav-spacer" aria-hidden="true" />
+      </header>
 
-      {/* Mode toggle: 自律打卡 (SOLO) · 交付托管 (DEPOSIT) · 公共事件对赌 (DUO) */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-        <ModeTab active={pactMode === 'solo'} onClick={() => selectMode('solo')} label="自律打卡" />
-        <ModeTab active={pactMode === 'escrow'} onClick={() => selectMode('escrow')} label="交付托管" />
-        <ModeTab active={pactMode === 'bet'} onClick={() => selectMode('bet')} label="对赌" />
+      <div className="mode-tabs" role="tablist" aria-label="立约模式">
+        <ModeTab active={pactMode === 'solo'} onClick={() => selectMode('solo')} mode="solo" label="自律打卡" />
+        <ModeTab active={pactMode === 'escrow'} onClick={() => selectMode('escrow')} mode="escrow" label="交付托管" />
+        <ModeTab active={pactMode === 'bet'} onClick={() => selectMode('bet')} mode="bet" label="对赌" />
       </div>
 
       {pactMode === 'bet' ? (
@@ -201,125 +205,100 @@ export function CreatePact() {
       ) : pactMode === 'escrow' ? (
         <EscrowForm />
       ) : (
-      <>
-      {/* Chat */}
-      <div className="scroll" style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: 20 }}>
-        {bubbles.map((m, i) => (
-          <div key={i} style={{ display: 'flex', justifyContent: m.from === 'bot' ? 'flex-start' : 'flex-end' }}>
-            {m.from === 'bot' && <span className="np-mark np-mark-sm" style={{ marginRight: 8, alignSelf: 'flex-end' }} aria-hidden="true">忍</span>}
-            <div className={m.from === 'bot' ? 'bubble-bot' : 'bubble-user'} style={{ whiteSpace: 'pre-line' }}>
-              {m.text}
+        <div role="tabpanel" aria-label="自律打卡">
+          <div className="create-split">
+            <div className="create-chat-col">
+              <div className="chat-log" aria-label="AI 对话">
+                {bubbles.map((m, i) => (
+                  <div key={i} className={`chat-row${m.from === 'user' ? ' user' : ''}`}>
+                    {m.from === 'bot' && <span className="bot-avatar" aria-hidden="true">忍</span>}
+                    <div className={m.from === 'bot' ? 'bubble-bot' : 'bubble-user'} style={{ whiteSpace: 'pre-line' }}>{m.text}</div>
+                  </div>
+                ))}
+                {thinking && (
+                  <div className="chat-row">
+                    <span className="bot-avatar" aria-hidden="true">忍</span>
+                    <div className="bubble-bot"><span className="spinner" style={{ width: 14, height: 14 }} /> 思考中...</div>
+                  </div>
+                )}
+                <div ref={bottomRef} />
+              </div>
+              {showInput && (
+                <div className="chat-compose">
+                  <label className="sr-only" htmlFor="solo-chat-input">描述你的目标</label>
+                  <input
+                    id="solo-chat-input"
+                    className="input"
+                    placeholder="描述你的目标…"
+                    value={input}
+                    onChange={e => setInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleSend()}
+                    disabled={thinking}
+                  />
+                  <button type="button" className="btn btn-primary btn-sm" onClick={handleSend} disabled={thinking}>发送</button>
+                </div>
+              )}
+            </div>
+
+            <div className="create-side-col">
+              {proposal && params ? (
+                <div className="card card-jade proposal-panel">
+                  <p className="label label-accent-jade">承诺摘要</p>
+                  <dl>
+                    <div className="proposal-row"><dt>目标</dt><dd>{proposal.goal}</dd></div>
+                    <div className="proposal-row"><dt>证据</dt><dd>{proposal.evidenceDesc}</dd></div>
+                  </dl>
+                  <p className="label proposal-section-label label-normal">拖动调整参数</p>
+                  <Slider label="周期" unit="天" value={params.durationDays} min={1} max={90}
+                    onChange={d => setParams(p => p && ({ ...p, durationDays: d, totalRequired: Math.min(p.totalRequired, d) }))} />
+                  <Slider label="打卡次数" unit="次" value={params.totalRequired} min={1} max={params.durationDays}
+                    onChange={n => setParams(p => p && ({ ...p, totalRequired: n }))} />
+                  <Slider label="质押" unit="mUSD" value={params.stake} min={10} max={1000} step={10}
+                    onChange={s => setParams(p => p && ({ ...p, stake: s }))} />
+                  <Slider label="免卡券" unit="张" value={params.restCards} min={0} max={10}
+                    onChange={r => setParams(p => p && ({ ...p, restCards: r }))} />
+                  <div className="proposal-row"><span>判负阈值</span><strong>{Math.max(1, Math.round(params.totalRequired * 0.2))} 次失败</strong></div>
+                  <div className="toggle-row">
+                    <span id="witness-label">邀请一位见证人</span>
+                    <button
+                      type="button"
+                      className={`toggle${inviteWitness ? ' on' : ''}`}
+                      aria-labelledby="witness-label"
+                      aria-pressed={inviteWitness}
+                      onClick={() => setInviteWitness(v => !v)}
+                    />
+                  </div>
+                  <div className="action-row" style={{ marginTop: 12 }}>
+                    <button type="button" className="btn btn-ghost" style={{ flex: 1 }} onClick={() => { setProposal(null); setParams(null) }} disabled={creating}>重新聊</button>
+                    <button type="button" className="btn btn-primary" style={{ flex: 2 }} onClick={handleConfirm} disabled={creating}>
+                      {creating ? <><span className="spinner" /> 上链中...</> : '确认并上链'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="card card-muted proposal-empty">
+                  <p className="subtitle">与 AI 对话后，承诺摘要与参数会出现在这里。</p>
+                </div>
+              )}
             </div>
           </div>
-        ))}
-
-        {thinking && (
-          <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: 8 }}>
-            <span className="np-mark np-mark-sm" aria-hidden="true">忍</span>
-            <div className="bubble-bot"><span className="spinner" style={{ width: 14, height: 14 }} /> 思考中...</div>
-          </div>
-        )}
-
-        {/* Proposal confirmation card: goal/evidence (LLM-defined) + adjustable sliders */}
-        {proposal && params && (
-          <div className="card" style={{ borderColor: 'var(--accent)' }}>
-            <div style={{ fontWeight: 700, marginBottom: 12, color: 'var(--accent)' }}>承诺摘要</div>
-            <ProposalRow label="目标" value={proposal.goal} />
-            <ProposalRow label="证据" value={proposal.evidenceDesc} />
-
-            <div className="divider" style={{ margin: '12px 0' }} />
-            <div className="subtitle" style={{ marginBottom: 8, fontSize: 12 }}>拖动调整你的参数</div>
-
-            <Slider
-              label="周期" unit="天" value={params.durationDays} min={1} max={90}
-              onChange={d => setParams(p => p && ({ ...p, durationDays: d, totalRequired: Math.min(p.totalRequired, d) }))}
-            />
-            <Slider
-              label="打卡次数" unit="次" value={params.totalRequired} min={1} max={params.durationDays}
-              onChange={n => setParams(p => p && ({ ...p, totalRequired: n }))}
-            />
-            <Slider
-              label="质押" unit="mUSD" value={params.stake} min={10} max={1000} step={10}
-              onChange={s => setParams(p => p && ({ ...p, stake: s }))}
-            />
-            <Slider
-              label="免卡券" unit="张" value={params.restCards} min={0} max={10}
-              onChange={r => setParams(p => p && ({ ...p, restCards: r }))}
-            />
-            <ProposalRow label="判负阈值" value={`${Math.max(1, Math.round(params.totalRequired * 0.2))} 次失败`} />
-
-            <div className="divider" style={{ margin: '12px 0' }} />
-            <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
-              <input
-                type="checkbox"
-                checked={inviteWitness}
-                onChange={e => setInviteWitness(e.target.checked)}
-                style={{ width: 18, height: 18, accentColor: 'var(--accent)', flexShrink: 0 }}
-              />
-              <span>
-                <span style={{ fontWeight: 600 }}>邀请一位见证人</span>
-                <span className="subtitle" style={{ display: 'block', fontSize: 12 }}>朋友可旁观你的进度（霍桑效应）。立约后给你邀请链接</span>
-              </span>
-            </label>
-
-            <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-              <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => { setProposal(null); setParams(null) }} disabled={creating}>
-                重新聊
-              </button>
-              <button className="btn btn-primary" style={{ flex: 2 }} onClick={handleConfirm} disabled={creating}>
-                {creating ? <><span className="spinner" /> 上链中...</> : '确认立约'}
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div ref={bottomRef} />
-      </div>
-
-      {/* Input */}
-      {showInput && (
-        <div style={{ display: 'flex', gap: 8, paddingTop: 12 }}>
-          <input
-            className="input"
-            placeholder="说说你的目标..."
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSend()}
-            disabled={thinking}
-          />
-          <button className="btn btn-primary" onClick={handleSend} style={{ flexShrink: 0 }} disabled={thinking}>
-            发送
-          </button>
         </div>
       )}
-      </>
-      )}
     </div>
   )
 }
 
-function ModeTab({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
+function ModeTab({ active, onClick, mode, label }: { active: boolean; onClick: () => void; mode: 'solo' | 'escrow' | 'bet'; label: string }) {
+  const icons = {
+    solo: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true"><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="4" /></svg>,
+    escrow: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true"><path d="M8 12h8M7 7h10v10H7z" /></svg>,
+    bet: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2" /><circle cx="9" cy="9" r="1" fill="currentColor" /><circle cx="15" cy="15" r="1" fill="currentColor" /></svg>,
+  }
   return (
-    <button
-      onClick={onClick}
-      style={{
-        flex: 1, padding: '10px 8px', borderRadius: 10, cursor: 'pointer',
-        border: `1px solid ${active ? 'var(--jade-line)' : 'var(--border)'}`,
-        background: active ? 'var(--jade-dim)' : 'var(--surface)',
-        color: active ? 'var(--jade)' : 'var(--text-dim)', fontWeight: 600, fontSize: 13,
-      }}
-    >
+    <button type="button" className={`mode-tab${active ? ' active' : ''}`} role="tab" aria-selected={active} onClick={onClick}>
+      {icons[mode]}
       {label}
     </button>
-  )
-}
-
-function ProposalRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="stat-row">
-      <span className="subtitle" style={{ flexShrink: 0, marginRight: 12 }}>{label}</span>
-      <span className="stat-value" style={{ fontSize: 14, textAlign: 'right' }}>{value}</span>
-    </div>
   )
 }
 
@@ -407,7 +386,7 @@ function EscrowForm() {
         abi: MOCK_USD_ABI, address: MOCK_USD_ADDRESS, functionName: 'approve',
         args: [NINJA_PACT_ADDRESS, stakeAmount],
       })
-      await publicClient.waitForTransactionReceipt({ hash: approveTx })
+      await waitReceipt(approveTx)
 
       toast('步骤 2/3：创建委托...', 'info')
       const createTx = await writeContractAsync({
@@ -425,7 +404,7 @@ function EscrowForm() {
           0n,              // deliverer stakes nothing
         ],
       })
-      await publicClient.waitForTransactionReceipt({ hash: createTx })
+      await waitReceipt(createTx)
 
       toast('步骤 3/3：托管资金...', 'info')
       const ids = await publicClient.readContract({
@@ -436,7 +415,7 @@ function EscrowForm() {
       const fundTx = await writeContractAsync({
         abi: NINJA_PACT_ABI, address: NINJA_PACT_ADDRESS, functionName: 'fund', args: [newId],
       })
-      await publicClient.waitForTransactionReceipt({ hash: fundTx })
+      await waitReceipt(fundTx)
 
       await saveTerms(newId, termsText)
       storeDeliverSecret(newId, secret) // payer copies the invite link from the detail page
@@ -451,64 +430,52 @@ function EscrowForm() {
   }
 
   return (
-    <div className="scroll" style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingBottom: 20 }}>
-      {/* Conversational 立约 (optional): AI drafts a testable checklist into the form */}
-      <div className="card">
-        <div style={{ fontWeight: 600, marginBottom: 8, fontSize: 14 }}>AI 帮你拟验收清单（可选）</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 220, overflowY: 'auto', marginBottom: 10 }}>
-          {bubbles.map((m, i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: m.from === 'bot' ? 'flex-start' : 'flex-end' }}>
-              {m.from === 'bot' && <span style={{ marginRight: 6, fontSize: 16, alignSelf: 'flex-end' }}>忍</span>}
-              <div className={m.from === 'bot' ? 'bubble-bot' : 'bubble-user'} style={{ whiteSpace: 'pre-line', fontSize: 13 }}>{m.text}</div>
-            </div>
-          ))}
-          {thinking && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 16 }}>忍</span>
-              <div className="bubble-bot"><span className="spinner" style={{ width: 12, height: 12 }} /> 思考中...</div>
-            </div>
-          )}
+    <div role="tabpanel" aria-label="交付托管">
+      <div className="card mode-form">
+        <p className="label label-accent-jade">代码交付托管</p>
+        <p className="subtitle">委托人托管资金，交付方提交源码与 demo，AI + 委托人验收后放款。</p>
+
+        <div className="card" style={{ marginBottom: 16 }}>
+          <div style={{ fontWeight: 600, marginBottom: 8, fontSize: 14 }}>AI 帮你拟验收清单（可选）</div>
+          <div className="chat-log" style={{ maxHeight: 180, marginBottom: 10 }}>
+            {bubbles.map((m, i) => (
+              <div key={i} className={`chat-row${m.from === 'user' ? ' user' : ''}`}>
+                {m.from === 'bot' && <span className="bot-avatar" aria-hidden="true">忍</span>}
+                <div className={m.from === 'bot' ? 'bubble-bot' : 'bubble-user'} style={{ whiteSpace: 'pre-line', fontSize: 13 }}>{m.text}</div>
+              </div>
+            ))}
+            {thinking && (
+              <div className="chat-row">
+                <span className="bot-avatar" aria-hidden="true">忍</span>
+                <div className="bubble-bot"><span className="spinner" style={{ width: 12, height: 12 }} /> 思考中...</div>
+              </div>
+            )}
+          </div>
+          <div className="chat-compose">
+            <input className="input" placeholder="说说你要做什么…" value={input}
+              onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSend()} disabled={thinking} />
+            <button type="button" className="btn btn-primary btn-sm" onClick={handleSend} disabled={thinking}>发送</button>
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <input
-            className="input" placeholder="说说你要做什么..." value={input}
-            onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSend()}
-            disabled={thinking}
-          />
-          <button className="btn btn-primary" onClick={handleSend} style={{ flexShrink: 0 }} disabled={thinking}>发送</button>
+
+        <div className="form-field">
+          <label className="label" htmlFor="escrow-goal">开发需求</label>
+          <textarea id="escrow-goal" className="input input-md" rows={4} placeholder="例如：做一个 Todo 网页应用，支持增删改与本地存储"
+            value={deliverable} onChange={e => setDeliverable(e.target.value)} />
         </div>
-      </div>
-
-      <div className="card" style={{ borderColor: 'var(--accent)' }}>
-        <div style={{ fontWeight: 700, marginBottom: 4, color: 'var(--accent)' }}>代码交付托管</div>
-        <p className="subtitle" style={{ fontSize: 13, marginBottom: 14 }}>
-          你先把钱托管进合约。交付方交源码 + 可测 demo，你实测验收通过才放款（放款才拿到源码）；
-          不满意可在改次数内要求修改；用尽仍有争议交 AI 终局裁决；超时未交付原路退回。
-        </p>
-
-        <label className="label" style={{ display: 'block', marginBottom: 6 }}>开发需求</label>
-        <textarea
-          className="input" rows={4} placeholder="例如：做一个 Todo 网页应用，支持增删改 + 本地存储"
-          value={deliverable} onChange={e => setDeliverable(e.target.value)}
-          style={{ width: '100%', resize: 'vertical', minHeight: 120, marginBottom: 14 }}
-        />
-
-        <label className="label" style={{ display: 'block', marginBottom: 6 }}>可测验收标准</label>
-        <textarea
-          className="input" rows={6} placeholder={'逐条写、可在 demo 上测：\n· 能新增任务\n· 能勾选完成\n· 刷新后数据还在\n· 手机端正常'}
-          value={acceptance} onChange={e => setAcceptance(e.target.value)}
-          style={{ width: '100%', resize: 'vertical', minHeight: 160, marginBottom: 8 }}
-        />
-
-        <div className="divider" style={{ margin: '12px 0' }} />
+        <div className="form-field">
+          <label className="label" htmlFor="escrow-accept">可测验收标准</label>
+          <textarea id="escrow-accept" className="input input-lg" rows={6}
+            placeholder={'逐条写、可在 demo 上测：\n· 能新增任务\n· 能勾选完成\n· 刷新后数据还在\n· 手机端布局正常'}
+            value={acceptance} onChange={e => setAcceptance(e.target.value)} />
+        </div>
         <Slider label="托管金额" unit="mUSD" value={amount} min={10} max={2000} step={10} onChange={setAmount} />
         <Slider label="修改次数" unit="次" value={revisions} min={0} max={5} onChange={setRevisions} />
         <Slider label="截止天数" unit="天" value={days} min={1} max={30} onChange={setDays} />
-
-        <button className="btn btn-primary btn-block" style={{ marginTop: 16 }} onClick={handleCreate} disabled={creating || !ready}>
-          {creating ? <><span className="spinner" /> 上链中...</> : `托管 ${amount} mUSD 并创建委托 `}
+        <button type="button" className="btn btn-primary btn-block mode-form-submit" onClick={handleCreate} disabled={creating || !ready}>
+          {creating ? <><span className="spinner" /> 上链中...</> : `托管 ${amount} mUSD 并创建委托`}
         </button>
-        {!ready && <p className="label" style={{ textAlign: 'center', marginTop: 8 }}>填写开发需求和验收标准后即可创建</p>}
+        {!ready && <p className="label" style={{ textAlign: 'center', marginTop: 8, textTransform: 'none' }}>填写开发需求和验收标准后即可创建</p>}
       </div>
     </div>
   )
@@ -557,7 +524,7 @@ function BetForm() {
         abi: MOCK_USD_ABI, address: MOCK_USD_ADDRESS, functionName: 'approve',
         args: [NINJA_PACT_ADDRESS, stakeAmount],
       })
-      await publicClient.waitForTransactionReceipt({ hash: approveTx })
+      await waitReceipt(approveTx)
 
       toast('步骤 2/3：创建对赌...', 'info')
       const createTx = await writeContractAsync({
@@ -571,7 +538,7 @@ function BetForm() {
           betsYes,
         ],
       })
-      await publicClient.waitForTransactionReceipt({ hash: createTx })
+      await waitReceipt(createTx)
 
       toast('步骤 3/3：押注...', 'info')
       const ids = await publicClient.readContract({
@@ -582,7 +549,7 @@ function BetForm() {
       const fundTx = await writeContractAsync({
         abi: NINJA_PACT_ABI, address: NINJA_PACT_ADDRESS, functionName: 'fund', args: [newId],
       })
-      await publicClient.waitForTransactionReceipt({ hash: fundTx })
+      await waitReceipt(fundTx)
 
       await saveTerms(newId, termsText)
       storeBetSecret(newId, secret) // creator copies the opponent invite link from the detail page
@@ -597,59 +564,39 @@ function BetForm() {
   }
 
   return (
-    <div className="scroll" style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingBottom: 20 }}>
-      <div className="card" style={{ borderColor: 'var(--accent)' }}>
-        <div style={{ fontWeight: 700, marginBottom: 4, color: 'var(--accent)' }}>公共事件对赌</div>
-        <p className="subtitle" style={{ fontSize: 13, marginBottom: 14 }}>
-          你和对手就一个公共事件各押等额。到期由 AI 裁判(事件预言机)查证结果并签名上链,赢家通吃整个奖池。
-          <br />（这是能力展示:与「自律不罚没」不同,对赌会罚没输家。）
-        </p>
+    <div role="tabpanel" aria-label="公共事件对赌">
+      <div className="card card-gold mode-form">
+        <p className="label label-accent-gold">公共事件对赌</p>
+        <p className="subtitle">双方等额押注，Judge 在截止日裁定结果并链上结算。</p>
 
-        <label className="label" style={{ display: 'block', marginBottom: 6 }}>对赌事件（可客观查证的 YES/NO 问题）</label>
-        <textarea
-          className="input" rows={4} placeholder="例如：Drake 会在 2025年10月1日 前发布新专辑吗？"
-          value={question} onChange={e => setQuestion(e.target.value)}
-          style={{ width: '100%', resize: 'vertical', minHeight: 120, marginBottom: 14 }}
-        />
+        <div className="form-field">
+          <label className="label" htmlFor="bet-event">对赌事件（可客观查证的 YES/NO 问题）</label>
+          <textarea id="bet-event" className="input input-md" rows={4}
+            placeholder="例如：Drake 会在 2026 年 10 月 1 日前发布新专辑吗？"
+            value={question} onChange={e => setQuestion(e.target.value)} />
+        </div>
 
-        <label className="label" style={{ display: 'block', marginBottom: 6 }}>我押哪一边</label>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-          <SideTab active={betsYes} onClick={() => setBetsYes(true)} label="YES 会发生" color="var(--success)" />
-          <SideTab active={!betsYes} onClick={() => setBetsYes(false)} label="NO 不会发生" color="var(--fail)" />
+        <p className="label" style={{ marginBottom: 8 }}>我押哪一边</p>
+        <div className="bet-side-tabs" role="group" aria-label="押注方向" style={{ marginBottom: 'var(--sp-4)' }}>
+          <button type="button" className={`bet-side-tab${betsYes ? ' active' : ''}`} aria-pressed={betsYes} onClick={() => setBetsYes(true)}>YES 会发生</button>
+          <button type="button" className={`bet-side-tab${!betsYes ? ' active' : ''}`} aria-pressed={!betsYes} onClick={() => setBetsYes(false)}>NO 不会发生</button>
         </div>
 
         <Slider label="押注额（双方等额）" unit="mUSD" value={amount} min={10} max={2000} step={10} onChange={setAmount} />
 
-        <label className="label" style={{ display: 'block', margin: '10px 0 6px' }}>裁定截止日</label>
-        <input
-          type="date" className="input" value={deadline}
-          min={new Date(Date.now() + 86400_000).toISOString().slice(0, 10)}
-          onChange={e => setDeadline(e.target.value)}
-          style={{ width: '100%', marginBottom: 8 }}
-        />
+        <div className="form-field bet-deadline-field">
+          <label className="label" htmlFor="bet-deadline">裁定截止日</label>
+          <input type="date" id="bet-deadline" className="input input-block" value={deadline}
+            min={new Date(Date.now() + 86400_000).toISOString().slice(0, 10)}
+            onChange={e => setDeadline(e.target.value)} />
+        </div>
 
-        <button className="btn btn-primary btn-block" style={{ marginTop: 12 }} onClick={handleCreate} disabled={creating || !ready}>
-          {creating ? <><span className="spinner" /> 上链中...</> : `押 ${amount} mUSD 并创建对赌 `}
+        <button type="button" className="btn btn-gold btn-block mode-form-submit" onClick={handleCreate} disabled={creating || !ready}>
+          {creating ? <><span className="spinner" /> 上链中...</> : `押 ${amount} mUSD 并创建对赌`}
         </button>
-        {!ready && <p className="label" style={{ textAlign: 'center', marginTop: 8 }}>填写对赌事件、选边、设定截止日后即可创建</p>}
+        {!ready && <p className="label" style={{ textAlign: 'center', marginTop: 8, textTransform: 'none' }}>填写对赌事件、选边、设定截止日后即可创建</p>}
       </div>
     </div>
-  )
-}
-
-function SideTab({ active, onClick, label, color }: { active: boolean; onClick: () => void; label: string; color: string }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        flex: 1, padding: '12px 8px', borderRadius: 10, cursor: 'pointer',
-        border: `1px solid ${active ? color : 'var(--border)'}`,
-        background: active ? color : 'var(--surface)',
-        color: active ? '#000' : 'var(--text-dim)', fontWeight: 700, fontSize: 14,
-      }}
-    >
-      {label}
-    </button>
   )
 }
 
@@ -659,18 +606,12 @@ function Slider({ label, unit, value, min, max, step = 1, onChange }: {
 }) {
   const pct = max === min ? 0 : ((value - min) / (max - min)) * 100
   return (
-    <div style={{ margin: '10px 0' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-        <span className="subtitle">{label}</span>
-        <span className="stat-value mono" style={{ color: 'var(--jade)' }}>{value} {unit}</span>
-      </div>
-      <input
-        type="range"
-        className="np-slider"
-        min={min} max={max} step={step} value={value}
+    <div className="slider-row">
+      <div className="slider-head"><span>{label}</span><strong>{value} {unit}</strong></div>
+      <input type="range" className="np-slider" min={min} max={max} step={step} value={value}
         style={{ '--p': `${pct}%` } as CSSProperties}
         onChange={e => onChange(Number(e.target.value))}
-      />
+        aria-label={label} />
     </div>
   )
 }

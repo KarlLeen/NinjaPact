@@ -1,6 +1,6 @@
 # NinjaPact · 忍者之约
 
-**The Commitment Layer** — on-chain commitments, AI adjudication, automatic settlement.
+**The Commitment Layer** — on-chain commitments · AI adjudication · automatic settlement · Built on Injective EVM
 
 **Language:** [English](#english) · [中文](README.zh-CN.md)
 
@@ -12,70 +12,114 @@
 
 **https://www.limlamleen.com** — Injective EVM testnet (chainId `1439`). Email / Google login via Privy; claim test mUSD in-app.
 
-## One line
+## The problem: promises never had a credible execution layer
 
-Turn a promise into an executable on-chain object: stake + natural-language terms + AI Judge + escrow contract. Same engine for self-discipline, small escrow, and (eventually) agent-to-agent verification.
+Society only gives two kinds of promises real teeth:
 
-## The problem
+- **Large contracts** → law (but litigation cost makes sub–$10k disputes uneconomical)
+- **In-platform promises** → the platform (once you leave the platform, nothing enforces)
 
-**Promises have never had a credible execution layer.**
+Everything else? A $7 favor for a friend, a weekly post promised to fans, a small delivery deal — **the social cost of breaking your word defaults to zero**.
 
-| | Self-commitments | Commitments to others |
-|---|---|---|
-| **Pain** | Forfeit proved demand — 686k commitments, $8.7M staked — but platforms profit when users fail → misaligned incentives, easy to cheat; funds sit with the platform → centralized, unauditable | Small delivery deals rely on trust; traditional escrow costs more than a sub-$100 contract |
-| **Root cause** | Not willpower — **missing infrastructure** | |
+It’s not that no one wants enforcement. **Enforcement doesn’t pay:** the cost of human arbitration on a dispute often exceeds a $200 stake.
+
+### Incumbents proved demand — but can’t fix the structural flaw
+
+Forfeit · StickK · Beeminder — three Web2 “commitment” products, **18+ years combined**. Same model: you set a goal, stake money, and when you fail, **the platform keeps the stake**.
+
+Beeminder’s FAQ, verbatim: *"Charging penalties is our business model."*
+
+**Referee and house are the same party** — when you fail, they profit. Web2 incumbents cannot fix this without killing their business model.
+
+## Why now
+
+Three lines crossed for the **first time in 2025–26**:
+
+1. **AI adjudication cost → ~zero** — multimodal evidence checks cost pennies; two years ago GPT-4V economics didn’t work  
+2. **Execution cost → ~zero** — stablecoins + Injective near-zero gas; escrow and settlement need no institution  
+3. **UX is ready** — embedded wallets and account abstraction; normal users can finally use a chain  
+
+This product **couldn’t be built before 2024**. After 2027, the window belongs to whoever already has on-chain reputation.
 
 ## The solution
 
-Three primitives, one engine:
+**Turn a promise into an on-chain executable object** — one engine, two commitment types:
 
 1. **On-chain escrow** — funds enter the contract; no one can move them arbitrarily  
-2. **AI Judge** — multimodal evidence review / delivery arbitration; EIP-712 signed verdicts on-chain and auditable  
-3. **Automatic settlement** — success → principal refunded + soulbound badge; failure → locked 6 months then **refunded** (never forfeited); escrow → release on confirmed delivery  
+2. **AI Judge** — multimodal acceptance / delivery arbitration; EIP-712 signed verdicts, auditable on-chain  
+3. **Automatic settlement** — success → principal back + soulbound badge; failure → locked 6 months then **refunded**, never forfeited  
 
-## How it works
+### Two mechanism-design cuts
 
-```
-① Commit          Natural language → AI summary → stake stablecoin → rules written on-chain
-② Verify          Daily evidence / deliverable + demo link → Judge reviews → signed verdict
-③ Settle          Conditions met → contract executes — no manual approval
-```
+- **Fake evidence to fool the Judge?** You only “win” early unlock of **your own** stake — time value of a few dollars, below forgery cost. Attack is uneconomic.  
+- **AI wrong?** Cost is **liquidity**, not principal — the hardest component is downgraded to non-critical; v1 can ship safely.  
+
+**Judge · escrow · beneficiary — separated powers, verifiable on-chain.**
+
+## Business model
+
+**Profitable from the first order; compounding with volume:**
+
+| Phase | Model |
+|---|---|
+| **I** | Fixed service fee — cost + margin on AI tokens; positive cash flow from order one |
+| **II** | Float yield — on-chain yield on locked escrow, transparent |
+| **III** | GMV take rate (core business) — every transaction through the engine pays a fee; **not tied to user failure** |
+| **Long term** | Performance credit bureau — case law + fulfillment graph for deals too small for courts |
+
+**Moat assets:** case library (grows more consistent with volume) · fulfillment credit graph (seller reputation in transaction contexts) · evidence integrations (health apps / GitHub / logistics APIs — wider over time)
 
 ## Moat: Judge reputation on-chain
 
 ```
-Habit users (low-friction entry)
-  → verdicts accumulate (on-chain + case history)
-  → users can rate the Judge via ERC-8004 giveFeedback (RateJudge UI)
-  → escrow customers import (higher ticket, trust already built)
-  → Judge registered as ERC-8004 agent (#48), identity queryable on-chain
-  → (roadmap) open Judge API for third-party / agent callers
+Habit users (low-friction entry, zero cold start)
+  → every verdict adds to Judge on-chain reputation
+  → case library grows → better adjudication consistency
+  → escrow customers import naturally (trust built, higher ticket)
+  → Judge registered as ERC-8004 Agent, reputation queryable on-chain
+  → third-party agents call Judge for acceptance
+  → public verification layer for agent-to-agent commerce
 ```
 
-Competitors can fork the contract. They cannot fork accumulated verdict history and reputation.
+Competitors can fork the contract. **They cannot fork on-chain reputation.**
 
-**Today:** Agent #48 is registered; users rate the Judge after a commitment concludes. Automated reputation pipelines and a public Judge API are on the roadmap (see below).
+Alipay grew from Taobao’s escrow into a payments empire — **escrow is the wedge; settlement is the business.**
+
+**Today:** Judge is ERC-8004 [Agent #48](https://testnet.blockscout.injective.network/token/0x8004A818BFB912233c491871b3d84c89A494BD9e/instance/48); users rate via `giveFeedback` after a commitment ends. Automated reputation writes and a public Judge API remain on the roadmap.
+
+## How it works (three steps)
+
+```
+① Commit     Natural language goal → AI summary → stake stablecoin → rules fixed on-chain
+② Verify     Daily evidence / deliverable + demo → Judge multimodal review → EIP-712 verdict on-chain
+③ Settle     Conditions met → contract executes — no manual approval
+```
 
 ## Architecture
 
+Two product surfaces, **one Judge engine**; every verdict compounds the same Agent’s on-chain reputation.
+
 ```
-User (Privy PWA)
+User (Privy embedded wallet)
     ↓  natural-language commit / upload evidence / submit delivery
-Judge service (Node.js · TypeScript · ZhipuAI GLM)
-    ├── SOLO: GLM-4V vision (daily evidence) → EIP-712 submitVerdict
-    ├── Escrow: GLM text arbitration → EIP-712 arbitrate (pass/fail only)
-    ├── Witness re-review (glm-4v-plus) on dispute
+Judge service (Node.js · TypeScript)
+    ├── SOLO: GLM-4V vision model (daily evidence)
+    ├── Escrow routine: GLM text (vs acceptance criteria)
+    ├── Escrow dispute: Azure OpenAI GPT-5.4 terminal arbitration
+    ├── EIP-712 signed verdicts
     └── ERC-8004 on-chain identity · Agent #48
+        https://testnet.blockscout.injective.network/token/0x8004A818BFB912233c491871b3d84c89A494BD9e/instance/48
+
 NinjaPact contract (Injective EVM · chainId 1439)
-    ├── SOLO state machine: Active → Success / Fail → Locked → Claimable
-    └── Escrow state machine: deliver → review → revision → arbitration → settle
+    ├── SOLO: Active → Success / Fail → Locked → Claimable
+    └── Escrow: deliver → review → revision → arbitration → settle
 ```
 
 **Design principles**
 
 - Chain is the only source of truth — frontend reads chain directly  
 - Backend is stateless (Judge, encrypted custody, keeper cron)  
-- Judge has zero discretionary fund authority — signs `submitVerdict` (SOLO) or `arbitrate` (escrow pass/fail only); payout recipients are fixed at creation; contract executes settlement  
+- Judge has zero discretionary fund authority — signs `submitVerdict` / `arbitrate` only; payout paths fixed at creation  
 
 ### Testnet deployment
 
@@ -88,21 +132,27 @@ NinjaPact contract (Injective EVM · chainId 1439)
 
 ## Why Injective
 
-Small-commitment settlement is a natural extension of Injective’s financial DNA — not a generic chain with a contract bolted on.
+Small-commitment settlement is the natural extension of Injective’s financial DNA — not a generic chain with a contract bolted on.
 
 | | Why it matters |
 |---|---|
-| **Low per-tx cost** (Injective EVM; order ~$0.00008/tx in pitch materials) | A $20 commitment is economically viable on-chain  |
-| **Fast blocks** (~0.64s in pitch materials) | Verdicts confirm quickly — Web2 feel, on-chain finality |
-| **Settlement-layer DNA** | Same pattern: condition met → funds move automatically |
+| **~$0.00008/tx** (pitch materials) | A $20 commitment is economically viable on-chain |
+| **~0.64s blocks** (pitch materials) | Verdicts confirm fast — Web2 feel, on-chain finality |
+| **Settlement-layer DNA** | Condition met → funds move automatically |
+
+**Two-way funnel for Injective:** the habit wedge brings outsiders onto Injective silently (embedded wallet, login = account); the escrow layer keeps real settlement volume and stablecoin float on-chain — **users in, money in**.
 
 Long term: as agents on Injective hire each other, **Judge is the acceptance layer**.
 
 ## Market
 
-- **Proven demand:** Forfeit — 686k commitments, $8.7M staked — on a single Web2 platform with misaligned incentives  
-- **Our wedge:** same need × **trustless execution** × **fees that work at small ticket sizes**  
-- **Upside:** grows with Injective agent economy — every agent-to-agent job needs verification; Judge is already there  
+**Proven demand:** Forfeit — 686,000 commitments · $8.7M staked · one platform, misaligned model, still at scale.
+
+**Our market** = same need × **trustless execution** × **fees that work at small ticket sizes**.
+
+Every WeChat / Telegram group has someone taking 1–5% as a human middleman — errands, commissions, gigs, OTC — all on reputation alone. With AI cutting per-case cost to pennies, **a $50 deal can finally afford escrow**.
+
+**Upside:** no fixed TAM forecast — as the Injective agent economy grows, every agent-to-agent job needs verification; Judge is already there.
 
 ## Status & roadmap
 
@@ -111,28 +161,33 @@ Long term: as agents on Injective hire each other, **Judge is the acceptance lay
 - [x] NinjaPact deployed on Injective EVM testnet  
 - [x] SOLO full loop: commit → check-in → AI verdict → settle  
 - [x] Escrow full loop: deliver → arbitrate → release  
-- [x] DUO public-event bets (capability slice)  
-- [x] Witness dispute + re-review flow  
-- [x] AI Judge registered as ERC-8004 agent #48; user `giveFeedback` rating UI  
-- [x] Mobile-first PWA live at [www.limlamleen.com](https://www.limlamleen.com)  
+- [x] AI Judge registered as ERC-8004 [Agent #48](https://testnet.blockscout.injective.network/token/0x8004A818BFB912233c491871b3d84c89A494BD9e/instance/48) ([Blockscout](https://testnet.blockscout.injective.network/token/0x8004A818BFB912233c491871b3d84c89A494BD9e/instance/48))  
+- [x] Live at [limlamleen.com](https://www.limlamleen.com)  
+- [x] Solo builder + AI toolchain — zero to full-stack closed loop  
 
 ### Next
 
 - [ ] Injective mainnet deployment  
-- [ ] Automated ERC-8004 reputation writes on every concluded commitment (beyond user-initiated ratings)  
-- [ ] Open Judge API — third-party agents call Judge for acceptance  
+- [ ] Open Judge API — any third-party agent can call Judge for acceptance  
 - [ ] Judge as shared verification infrastructure for the Injective agent ecosystem  
+
+## Try it
+
+| | |
+|---|---|
+| **Product** | [limlamleen.com](https://www.limlamleen.com) |
+| **Judge API / contact** | limlamleen@gmail.com |
+| **Code** | [github.com/KarlLeen/NinjaPact](https://github.com/KarlLeen/NinjaPact) |
 
 ## Repo map
 
 ```
 contracts/   Solidity + Foundry (NinjaPact, MockUSD, Badge)
 frontend/    Vite + React + TypeScript PWA (viem / wagmi / Privy)
-judge/       Express + GLM multimodal adjudication + EIP-712 signing
+judge/       Express + GLM / Azure OpenAI adjudication + EIP-712 signing
 keeper/      Cron: expiry settle, timeout cancel, claim helpers
 deploy/      nginx + pm2 production notes
-docs/        Checklists, deploy tickets (e.g. 自测checklist.md)
-NinjaPact_MVP开发文档.md, HANDOFF.md, CLAUDE.md  — at repo root
+docs/        Checklists, deploy tickets
 ```
 
 ## Development
@@ -140,36 +195,18 @@ NinjaPact_MVP开发文档.md, HANDOFF.md, CLAUDE.md  — at repo root
 **Requirements:** Foundry, Node 18+, pnpm  
 
 ```bash
-# Contracts
 cd contracts && forge test
-
-# Frontend
 cd frontend && pnpm install && pnpm dev
-
-# Judge + Keeper (copy .env from examples; never commit secrets)
-cd judge && npm install && npm run dev
+cd judge && npm install && npm run dev   # copy .env; never commit secrets
 cd keeper && npm install && npm run dev
 ```
 
-**Injective EVM testnet**
-
-- Chain ID: `1439`  
-- RPC: `https://testnet.sentry.chain.json-rpc.injective.network`  
-- Faucet: https://testnet.faucet.injective.network/  
-
-**Docs for contributors**
-
-| File | Purpose |
-|---|---|
-| `HANDOFF.md` | Current state, deploy, what’s next |
-| `CLAUDE.md` | Engineering rules |
-| `NinjaPact_MVP开发文档.md` | Product constitution |
-| `NinjaPact_one-pager.md` | Extended pitch |
+**Injective EVM testnet:** chainId `1439` · RPC `https://testnet.sentry.chain.json-rpc.injective.network` · [Faucet](https://testnet.faucet.injective.network/)
 
 ## Disclaimer
 
-Testnet demo only — mock stablecoin (mUSD), not real money. Not financial advice. No production license file in this repo yet.
+Testnet demo only — mock stablecoin (mUSD), not real money. Not financial advice.
 
 ---
 
-**中文说明 → [README.zh-CN.md](README.zh-CN.md)**
+**The Commitment Layer · Built on Injective** · [中文 → README.zh-CN.md](README.zh-CN.md)

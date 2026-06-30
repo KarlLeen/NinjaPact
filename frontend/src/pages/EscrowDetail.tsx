@@ -1,18 +1,24 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAccount, useReadContract, useWriteContract, usePublicClient, useSignMessage } from 'wagmi'
+import { useAccount, useReadContract, useWriteContract, useSignMessage } from 'wagmi'
 import { formatUnits, keccak256, stringToBytes } from 'viem'
 import {
   NINJA_PACT_ABI, MOCK_USD_ABI, NINJA_PACT_ADDRESS, MOCK_USD_ADDRESS,
   STATE, STATE_LABEL, STATE_CLASS, ESCROW_PHASE, ESCROW_PHASE_LABEL,
 } from '../lib/contracts'
 import { ZERO_ADDRESS } from '../lib/witness'
+
+const CHAIN_POLL_MS = 20_000
+const CHAIN_POLL_QUERY = { refetchInterval: CHAIN_POLL_MS, refetchIntervalInBackground: false } as const
+
 import { getDeliverSecret, deliverLink } from '../lib/deliver'
 import { fetchTermsText } from '../lib/terms'
 import { getJudgeJwt } from '../lib/judgeAuth'
-import { fetchDeliveryMeta, downloadSource, postDispute, safeExternalUrl, type DeliveryMeta } from '../lib/escrow'
+import { fetchDeliveryMeta, downloadSource, postDisputeWithRetry, safeExternalUrl, type DeliveryMeta } from '../lib/escrow'
+import { AcceptList, DetailTopNav, InviteCardBlock, StatRow, StatusPanel, WaitSpinnerIcon, WaitTeamIcon, escrowPayerPhases, parseAcceptanceLines, PhaseTrack } from '../components/PactUi'
 import { RateJudge } from '../components/RateJudge'
 import { useToast } from '../lib/toast'
+import { waitReceipt } from '../lib/tx'
 
 function short(a?: string) {
   return a ? `${a.slice(0, 6)}...${a.slice(-4)}` : ''
@@ -24,7 +30,6 @@ export function EscrowDetail({ pactId }: { pactId: bigint }) {
   const { address } = useAccount()
   const { writeContractAsync } = useWriteContract()
   const { signMessageAsync } = useSignMessage()
-  const publicClient = usePublicClient()
   const toast = useToast()
 
   const [busy, setBusy] = useState(false)
@@ -35,12 +40,15 @@ export function EscrowDetail({ pactId }: { pactId: bigint }) {
 
   const { data: commitment, refetch } = useReadContract({
     abi: NINJA_PACT_ABI, address: NINJA_PACT_ADDRESS, functionName: 'getCommitment', args: [pactId],
+    query: CHAIN_POLL_QUERY,
   })
   const { data: parties } = useReadContract({
     abi: NINJA_PACT_ABI, address: NINJA_PACT_ADDRESS, functionName: 'getParties', args: [pactId],
+    query: CHAIN_POLL_QUERY,
   })
   const { data: escrow, refetch: refetchEscrow } = useReadContract({
     abi: NINJA_PACT_ABI, address: NINJA_PACT_ADDRESS, functionName: 'getEscrow', args: [pactId],
+    query: CHAIN_POLL_QUERY,
   })
   const { data: delivered, refetch: refetchDelivered } = useReadContract({
     abi: NINJA_PACT_ABI, address: NINJA_PACT_ADDRESS, functionName: 'escrowDelivered', args: [pactId],
@@ -57,12 +65,19 @@ export function EscrowDetail({ pactId }: { pactId: bigint }) {
 
   const phase = Number(escrow?.phase ?? 0)
 
-  // Pull the latest delivery (demo link) whenever there's something to review
+  // Pull demo link whenever delivery exists; poll until meta lands on Judge
   useEffect(() => {
-    if (phase === ESCROW_PHASE.None || phase === ESCROW_PHASE.InProgress) { return }
+    if (phase === ESCROW_PHASE.None || phase === ESCROW_PHASE.InProgress) {
+      setMeta(null)
+      return
+    }
     let alive = true
-    fetchDeliveryMeta(pactId).then(m => { if (alive) setMeta(m) })
-    return () => { alive = false }
+    const load = () => {
+      fetchDeliveryMeta(pactId).then(m => { if (alive && m) setMeta(m) })
+    }
+    load()
+    const timer = setInterval(load, CHAIN_POLL_MS)
+    return () => { alive = false; clearInterval(timer) }
   }, [phase, pactId])
 
   const secret = useMemo(() => getDeliverSecret(pactId), [pactId])
@@ -87,7 +102,7 @@ export function EscrowDetail({ pactId }: { pactId: bigint }) {
       const hash = await writeContractAsync({
         abi: NINJA_PACT_ABI, address: NINJA_PACT_ADDRESS, functionName: fn, args,
       } as Parameters<typeof writeContractAsync>[0])
-      await publicClient!.waitForTransactionReceipt({ hash })
+      await waitReceipt(hash)
       toast(ok, 'success')
       refetchAll()
     } catch (e: unknown) {
@@ -109,9 +124,13 @@ export function EscrowDetail({ pactId }: { pactId: bigint }) {
       const hash = await writeContractAsync({
         abi: NINJA_PACT_ABI, address: NINJA_PACT_ADDRESS, functionName: 'requestRevision', args: [pactId, msgHash],
       })
-      await publicClient!.waitForTransactionReceipt({ hash })
-      try { await postDispute(pactId, complaint.trim()) } catch { /* text store is best-effort */ }
-      toast('已提交，等待交付方修改', 'success')
+      await waitReceipt(hash)
+      try {
+        await postDisputeWithRetry(pactId, complaint.trim())
+        toast('已提交，等待交付方修改', 'success')
+      } catch {
+        toast('链上已记录，但修改意见文字同步失败—请稍后刷新；交付方可能暂时看不到详情', 'error')
+      }
       setComplaint(''); setShowRevise(false)
       refetchAll()
     } catch (e: unknown) {
@@ -127,12 +146,12 @@ export function EscrowDetail({ pactId }: { pactId: bigint }) {
       const a = await writeContractAsync({
         abi: MOCK_USD_ABI, address: MOCK_USD_ADDRESS, functionName: 'approve', args: [NINJA_PACT_ADDRESS, escrowAmt],
       })
-      await publicClient!.waitForTransactionReceipt({ hash: a })
+      await waitReceipt(a)
       toast('步骤 2/2：托管资金...', 'info')
       const f = await writeContractAsync({
         abi: NINJA_PACT_ABI, address: NINJA_PACT_ADDRESS, functionName: 'fund', args: [pactId],
       })
-      await publicClient!.waitForTransactionReceipt({ hash: f })
+      await waitReceipt(f)
       toast('资金已托管', 'success')
       refetchAll()
     } catch (e: unknown) {
@@ -154,166 +173,262 @@ export function EscrowDetail({ pactId }: { pactId: bigint }) {
     } finally { setBusy(false) }
   }
 
-  return (
-    <div className="screen">
-      <div className="nav">
-        <button className="nav-back" onClick={() => nav('/dashboard')}>← 返回</button>
-        <span className={`state-badge ${STATE_CLASS[state]}`}>
-          {state === STATE.Active ? ESCROW_PHASE_LABEL[phase] : STATE_LABEL[state]}
-        </span>
-      </div>
+  const acceptItems = parseAcceptanceLines(terms.evidence)
+  const phaseSteps = escrowPayerPhases(phase)
+  const badgeLabel = state === STATE.Active ? ESCROW_PHASE_LABEL[phase] : STATE_LABEL[state]
+  const isWaitDeliverer = state === STATE.AwaitingParties && !!secret
+  const isWaitDelivery = state === STATE.Active && phase === ESCROW_PHASE.InProgress
 
-      <div className="card" style={{ marginBottom: 16 }}>
-        <div className="label" style={{ marginBottom: 4 }}>代码交付托管 · 委托 #{pactId.toString()}</div>
-        <div style={{ fontWeight: 600, fontSize: 17, lineHeight: 1.4 }}>{terms.goal ?? `委托 #${pactId.toString()}`}</div>
-        {terms.evidence && <p className="subtitle" style={{ marginTop: 8, fontSize: 13 }}>验收标准：{terms.evidence}</p>}
-        <div className="divider" style={{ margin: '12px 0' }} />
-        <div className="stat-row">
-          <span className="subtitle">托管金额</span>
-          <span className="stat-value" style={{ color: 'var(--accent)' }}>{formatUnits(escrowAmt, 6)} mUSD</span>
-        </div>
-        <div className="stat-row">
-          <span className="subtitle">交付方</span>
-          <span className="stat-value" style={{ fontSize: 13 }}>{delivererBound ? short(deliverer) : '待接受'}</span>
-        </div>
-        {revAllowed > 0 && (
-          <div className="stat-row">
-            <span className="subtitle">修改次数</span>
-            <span className="stat-value">{revUsed}/{revAllowed} 已用</span>
-          </div>
-        )}
-      </div>
-
-      {/* Settled outcome */}
-      {state === STATE.Settled && (
-        <>
-          <div className="card" style={{ textAlign: 'center', borderColor: delivered ? 'var(--success)' : 'var(--border)' }}>
-            <div style={{ fontSize: 40, marginBottom: 8 }}>{delivered ? '已' : '返'}</div>
-            <div style={{ fontWeight: 600, marginBottom: delivered ? 14 : 0 }}>
-              {delivered ? `交付已验收，${formatUnits(escrowAmt, 6)} mUSD 已支付` : `已退款，${formatUnits(escrowAmt, 6)} mUSD 已退回`}
-            </div>
-            {delivered && (
-              <button className="btn btn-primary btn-block" onClick={handleDownload} disabled={busy}>
-                {busy ? <span className="spinner" /> : '下载源码'}
-              </button>
-            )}
-          </div>
-          <RateJudge id={pactId} scene="escrow" outcome={delivered ? 'success' : 'fail'} />
-        </>
-      )}
-
-      {/* Created: fund recovery */}
-      {state === STATE.Created && (
-        <div className="card">
-          <p className="subtitle" style={{ marginBottom: 12, textAlign: 'center' }}>委托已创建，资金尚未托管</p>
-          <button className="btn btn-primary btn-block" onClick={handleFund} disabled={busy}>
-            {busy ? <span className="spinner" /> : `托管 ${formatUnits(escrowAmt, 6)} mUSD`}
-          </button>
-        </div>
-      )}
-
-      {/* AwaitingParties: share the deliverer invite link */}
-      {state === STATE.AwaitingParties && (
-        secret ? <DeliverInvite link={deliverLink(pactId, secret)} /> : (
-          <div className="card" style={{ textAlign: 'center' }}>
-            <p className="subtitle">等待交付方接受委托（邀请链接在创建此委托的设备上）</p>
-          </div>
-        )
-      )}
-
-      {/* InProgress: waiting for first delivery */}
-      {state === STATE.Active && phase === ESCROW_PHASE.InProgress && (
-        <div className="card" style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 28, marginBottom: 6 }}>⏳</div>
-          <p className="subtitle">交付方已接受，等待 Ta 交付源码 + demo</p>
-        </div>
-      )}
-
-      {/* UnderReview: test the demo → confirm / revise / arbitrate */}
-      {state === STATE.Active && phase === ESCROW_PHASE.UnderReview && (
-        <div className="card" style={{ borderColor: 'var(--accent)' }}>
-          <div style={{ fontWeight: 600, marginBottom: 8 }}>验收：测试 demo</div>
-          {meta?.demoLink ? (
-            <a href={safeExternalUrl(meta.demoLink)} target="_blank" rel="noreferrer noopener"
-              className="btn btn-ghost btn-block" style={{ marginBottom: 6 }}>
-              打开 demo 实测 →
-            </a>
-          ) : <p className="subtitle" style={{ fontSize: 13 }}>正在获取 demo 链接…</p>}
-          <p className="label" style={{ marginBottom: 14 }}>
-            对照验收标准实测；满意就放款，有问题就提修改意见。源码已托管，放款后才可下载。
-          </p>
-
-          {!showRevise ? (
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button className="btn btn-primary" style={{ flex: 2 }} onClick={handleConfirm} disabled={busy}>
-                {busy ? <span className="spinner" /> : '满意，放款'}
-              </button>
-              {revisionsLeft > 0 ? (
-                <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => setShowRevise(true)} disabled={busy}>
-                  提修改
-                </button>
-              ) : (
-                <button className="btn btn-ghost" style={{ flex: 1 }} onClick={handleArbitrate} disabled={busy}>
-                  ⚖️ 裁决
-                </button>
-              )}
-            </div>
-          ) : (
-            <div>
-              <textarea
-                className="input" rows={3} placeholder="具体说明哪里不符合验收标准…"
-                value={complaint} onChange={e => setComplaint(e.target.value)}
-                style={{ width: '100%', resize: 'vertical', marginBottom: 10 }}
-              />
-              <p className="label" style={{ marginBottom: 10 }}>剩余修改次数：{revisionsLeft}（提交将用掉 1 次）</p>
-              <div style={{ display: 'flex', gap: 10 }}>
-                <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => { setShowRevise(false); setComplaint('') }} disabled={busy}>
-                  取消
-                </button>
-                <button className="btn btn-primary" style={{ flex: 2 }} onClick={handleRevise} disabled={busy}>
-                  {busy ? <span className="spinner" /> : '提交修改意见'}
-                </button>
+  if (isWaitDeliverer || isWaitDelivery) {
+    return (
+      <div className="app-shell screen screen-detail">
+        <DetailTopNav onBack={() => nav('/dashboard')} badge={<span className={`state-badge ${STATE_CLASS[state]}`}>{badgeLabel}</span>} />
+        <main className="detail-layout wait-detail" aria-label="托管详情">
+          <div className="detail-main">
+            <div className="detail-hero mode-escrow-hero">
+              <div className="detail-meta-row">
+                <span className="kind-tag mode-escrow">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true"><path d="M8 12h8M12 8v8" /><rect x="4" y="6" width="16" height="12" rx="2" /></svg>
+                  交付托管 · 委托 #{pactId.toString()}
+                </span>
+                <span className="stake-tag">{formatUnits(escrowAmt, 6)} mUSD</span>
+              </div>
+              <h1 className="title">{terms.goal ?? `委托 #${pactId.toString()}`}</h1>
+              <PhaseTrack steps={phaseSteps} label="托管阶段" />
+              <div className="hero-stat-grid">
+                {isWaitDeliverer && (
+                  <>
+                    <StatRow label="交付方" value="待接受" valueClass="text-muted" />
+                    <StatRow label="托管金额" value={`${formatUnits(escrowAmt, 6)} mUSD`} valueClass="text-gold" />
+                  </>
+                )}
+                {isWaitDelivery && (
+                  <>
+                    <StatRow label="交付方" value={short(deliverer)} />
+                    <StatRow label="托管金额" value={`${formatUnits(escrowAmt, 6)} mUSD`} valueClass="text-gold" />
+                  </>
+                )}
               </div>
             </div>
+
+            {isWaitDeliverer && secret && (
+              <div className="mobile-only">
+                <DeliverInvite link={deliverLink(pactId, secret)} pactId={pactId} />
+              </div>
+            )}
+
+            {isWaitDeliverer && (
+              <StatusPanel
+                className="status-panel--row-desktop"
+                icon={<WaitTeamIcon />}
+                title="等待交付方接受委托"
+                lede="对方接受后进入编写阶段，你会收到链上通知。"
+              />
+            )}
+
+            {isWaitDelivery && (
+              <StatusPanel
+                className="status-panel--row-desktop"
+                icon={<WaitSpinnerIcon />}
+                title="交付方已接受，等待交付"
+                lede="交付方正在编写并准备源码 zip + 可测 demo 链接。提交后你会进入验收阶段。"
+              />
+            )}
+
+            {acceptItems.length > 0 && (
+              <section className="checklist-card" aria-label="验收清单">
+                <div className="checkin-history-head"><h2>可测验收清单</h2><span className="label label-normal">链上锚定</span></div>
+                <AcceptList items={acceptItems} />
+              </section>
+            )}
+          </div>
+
+          <aside className="detail-sidebar desktop-only" aria-label="侧栏操作">
+            {isWaitDeliverer && secret && (
+              <div className="witness-card invite-sidebar">
+                <DeliverInvite link={deliverLink(pactId, secret)} pactId={pactId} compact />
+              </div>
+            )}
+            <div className="sidebar-card">
+              <p className="label section-label">委托摘要</p>
+              <dl className="contract-dl">
+                <div className="contract-row"><dt>托管金额</dt><dd className="mono-gold">{formatUnits(escrowAmt, 6)} mUSD</dd></div>
+                <div className="contract-row"><dt>交付方</dt><dd className="mono text-dim-sm">{delivererBound ? short(deliverer) : '待接受'}</dd></div>
+                <div className="contract-row"><dt>当前阶段</dt><dd>{isWaitDeliverer ? '等待接单' : '等待交付'}</dd></div>
+              </dl>
+            </div>
+            {isWaitDeliverer && (
+              <div className="sidebar-card sidebar-tip">
+                <p className="label section-label">下一步</p>
+                <p className="sidebar-tip-text">复制邀请链接发给交付方。对方通过链接接受后，托管进入编写阶段。</p>
+              </div>
+            )}
+            {isWaitDelivery && (
+              <div className="sidebar-card sidebar-tip">
+                <p className="label section-label">下一步</p>
+                <p className="sidebar-tip-text">交付方提交源码 zip 与 demo 后，你会收到通知并进入验收阶段。</p>
+              </div>
+            )}
+          </aside>
+        </main>
+      </div>
+    )
+  }
+
+  return (
+    <div className="app-shell screen screen-detail">
+      <DetailTopNav onBack={() => nav('/dashboard')} badge={<span className={`state-badge ${STATE_CLASS[state]}`}>{badgeLabel}</span>} />
+
+      <main className="detail-layout" aria-label="托管详情">
+        <div className="detail-main">
+          <div className="detail-hero mode-escrow-hero">
+            <div className="detail-meta-row">
+              <span className="kind-tag mode-escrow">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true"><path d="M8 12h8M12 8v8" /><rect x="4" y="6" width="16" height="12" rx="2" /></svg>
+                交付托管 · 委托 #{pactId.toString()}
+              </span>
+              <span className="stake-tag">{formatUnits(escrowAmt, 6)} mUSD</span>
+            </div>
+            <h1 className="title">{terms.goal ?? `委托 #${pactId.toString()}`}</h1>
+            {terms.evidence && <p className="evidence-lede">{terms.evidence}</p>}
+            <PhaseTrack steps={phaseSteps} label="托管阶段" />
+          </div>
+
+          {state === STATE.Settled && (
+            <div className={`status-panel${delivered ? ' accent' : ''}`}>
+              <div className={`status-mark${delivered ? ' jade' : ''}`}>{delivered ? '成' : '返'}</div>
+              <h2>{delivered ? '交付已验收' : '已退款'}</h2>
+              <p className="status-lede">
+                {delivered ? `${formatUnits(escrowAmt, 6)} mUSD 已支付给交付方` : `${formatUnits(escrowAmt, 6)} mUSD 已退回你的钱包`}
+              </p>
+              {delivered && (
+                <button type="button" className="btn btn-primary btn-block" onClick={handleDownload} disabled={busy}>
+                  {busy ? <span className="spinner" /> : '下载源码'}
+                </button>
+              )}
+              <RateJudge id={pactId} scene="escrow" outcome={delivered ? 'success' : 'fail'} />
+            </div>
+          )}
+
+          {state === STATE.Created && (
+            <div className="status-panel">
+              <div className="status-mark">待</div>
+              <h2>待托管资金</h2>
+              <p className="status-lede">委托已创建，确认后将 {formatUnits(escrowAmt, 6)} mUSD 托管进合约。</p>
+              <button type="button" className="btn btn-primary btn-block" onClick={handleFund} disabled={busy}>
+                {busy ? <span className="spinner" /> : `托管 ${formatUnits(escrowAmt, 6)} mUSD`}
+              </button>
+            </div>
+          )}
+
+          {state === STATE.AwaitingParties && !secret && (
+            <StatusPanel mark="等" title="等待交付方接单" lede="邀请链接在创建此委托的设备上，请复制后发给交付方。" />
+          )}
+
+          {state === STATE.Active && phase === ESCROW_PHASE.UnderReview && (
+            <div className="action-card">
+              <div className="action-card-head">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>
+                <h2>验收：测试 demo</h2>
+              </div>
+              <p className="subtitle text-subtle">对照验收标准实测；满意就放款，有问题就提修改意见。源码已托管，放款后才可下载。</p>
+              {meta?.demoLink ? (
+                <a href={safeExternalUrl(meta.demoLink)!} target="_blank" rel="noreferrer noopener" className="btn btn-ghost btn-block">打开 demo 实测</a>
+              ) : <p className="subtitle">正在获取 demo 链接…</p>}
+              {!showRevise ? (
+                <div className="action-row">
+                  <button type="button" className="btn btn-primary" onClick={handleConfirm} disabled={busy}>
+                    {busy ? <span className="spinner" /> : '满意，放款'}
+                  </button>
+                  {revisionsLeft > 0 ? (
+                    <button type="button" className="btn btn-ghost" onClick={() => setShowRevise(true)} disabled={busy}>提修改</button>
+                  ) : (
+                    <button type="button" className="btn btn-ghost" onClick={handleArbitrate} disabled={busy}>申请裁决</button>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <textarea className="input" rows={3} placeholder="具体说明哪里不符合验收标准…" value={complaint} onChange={e => setComplaint(e.target.value)} style={{ width: '100%', resize: 'vertical', marginBottom: 12 }} />
+                  <p className="label label-normal">剩余修改次数：{revisionsLeft}（提交将用掉 1 次）</p>
+                  <div className="action-row">
+                    <button type="button" className="btn btn-ghost" onClick={() => { setShowRevise(false); setComplaint('') }} disabled={busy}>取消</button>
+                    <button type="button" className="btn btn-primary" onClick={handleRevise} disabled={busy}>
+                      {busy ? <span className="spinner" /> : '提交修改意见'}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {state === STATE.Active && phase === ESCROW_PHASE.RevisionRequested && (
+            <div className="status-panel warn">
+              <div className="status-mark">改</div>
+              <h2>等待重新交付</h2>
+              <p className="status-lede">修改意见已发出，交付方正在更新源码与 demo。</p>
+            </div>
+          )}
+
+          {state === STATE.Active && phase === ESCROW_PHASE.Arbitration && (
+            <div className="status-panel fail">
+              <div className="status-mark">裁</div>
+              <h2>AI 终局裁决中</h2>
+              <p className="status-lede">对照原始验收标准裁定：达标放款 / 不达标退款。</p>
+            </div>
+          )}
+
+          {acceptItems.length > 0 && (
+            <section className="checklist-card" aria-label="验收清单">
+              <div className="checkin-history-head"><h2>可测验收清单</h2><span className="label label-normal">链上锚定</span></div>
+              <AcceptList items={acceptItems} />
+            </section>
           )}
         </div>
-      )}
 
-      {/* RevisionRequested: waiting for deliverer to resubmit */}
-      {state === STATE.Active && phase === ESCROW_PHASE.RevisionRequested && (
-        <div className="card" style={{ textAlign: 'center' }}>
-          <div className="empty-icon" style={{ width: 40, height: 40, margin: '0 auto 6px', fontSize: 14 }} aria-hidden="true">改</div>
-          <p className="subtitle">修改意见已发出，等待交付方重新交付</p>
-        </div>
-      )}
-
-      {/* Arbitration */}
-      {state === STATE.Active && phase === ESCROW_PHASE.Arbitration && (
-        <div className="card" style={{ textAlign: 'center', borderColor: 'var(--locked)' }}>
-          <div style={{ fontSize: 28, marginBottom: 6 }}>⚖️</div>
-          <p className="subtitle">AI 旗舰正对照原始验收标准做终局裁决（达标放款 / 不达标退款）…</p>
-        </div>
-      )}
+        <aside className="detail-sidebar desktop-only" aria-label="侧栏信息">
+          <div className="sidebar-card">
+            <p className="label section-label">委托信息</p>
+            <dl className="contract-dl">
+              <div className="contract-row"><dt>托管金额</dt><dd className="mono-gold">{formatUnits(escrowAmt, 6)} mUSD</dd></div>
+              <div className="contract-row"><dt>交付方</dt><dd className="mono text-dim-sm">{delivererBound ? short(deliverer) : '待接受'}</dd></div>
+              {revAllowed > 0 && <div className="contract-row"><dt>修改次数</dt><dd>{revUsed}/{revAllowed} 已用</dd></div>}
+            </dl>
+          </div>
+          {state === STATE.AwaitingParties && secret && (
+            <div className="witness-card"><DeliverInvite link={deliverLink(pactId, secret)} pactId={pactId} compact /></div>
+          )}
+        </aside>
+      </main>
     </div>
   )
 }
 
-function DeliverInvite({ link }: { link: string }) {
+function DeliverInvite({ link, compact, pactId }: { link: string; compact?: boolean; pactId: bigint }) {
   const [copied, setCopied] = useState(false)
   async function copy() {
     try { await navigator.clipboard.writeText(link) } catch { /* ignore */ }
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
+  if (compact) {
+    return (
+      <>
+        <p className="invite-title">交付方邀请</p>
+        <p className="invite-lede">委托 #{pactId.toString()} · 把链接发给交付方，Ta 接受后可提交源码与 demo。</p>
+        <button type="button" className={`btn btn-ghost btn-block btn-sm${copied ? ' is-copied' : ''}`} onClick={copy}>
+          {copied ? '已复制链接' : '复制交付邀请链接'}
+        </button>
+      </>
+    )
+  }
   return (
-    <div className="card" style={{ borderColor: 'var(--accent)' }}>
-      <div style={{ fontWeight: 600, marginBottom: 6, color: 'var(--accent)' }}>交付方邀请</div>
-      <p className="subtitle" style={{ fontSize: 13, marginBottom: 12 }}>
-        把链接发给交付方。Ta 接受后交付源码 + 可测 demo，你验收通过托管金才放款。凭证只在链接里（# 后）。
-      </p>
-      <button className="btn btn-primary btn-block" onClick={copy}>
-        {copied ? '已复制链接' : '复制交付邀请链接'}
-      </button>
-    </div>
+    <InviteCardBlock
+      title="交付方邀请"
+      lede={`委托 #${pactId.toString()} · 把链接发给交付方。Ta 接受后交付源码 + 可测 demo，你验收通过托管金才放款。凭证只在链接里（# 后）。`}
+      buttonLabel="复制交付邀请链接"
+      copiedLabel="已复制链接"
+      onCopy={copy}
+      copied={copied}
+    />
   )
 }
