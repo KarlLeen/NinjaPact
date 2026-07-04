@@ -16,7 +16,7 @@
 
 Society only gives two kinds of promises real teeth:
 
-- **Large contracts** → law (but litigation cost makes sub–$10k disputes uneconomical)
+- **Large contracts** → law (but litigation cost makes sub–$1k disputes uneconomical)
 - **In-platform promises** → the platform (once you leave the platform, nothing enforces)
 
 Everything else? A $7 favor for a friend, a weekly post promised to fans, a small delivery deal — **the social cost of breaking your word defaults to zero**.
