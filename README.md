@@ -21,7 +21,7 @@ Society only gives two kinds of promises real teeth:
 
 Everything else? A $7 favor for a friend, a weekly post promised to fans, a small delivery deal — **the social cost of breaking your word defaults to zero**.
 
-It’s not that no one wants enforcement. **Enforcement doesn’t pay:** the cost of human arbitration on a dispute often exceeds a $200 stake.
+It’s not that no one wants enforcement. **Enforcement doesn’t pay:** the cost of human arbitration on a dispute often exceeds a $30 stake.
 
 ### Incumbents proved demand — but can’t fix the structural flaw
 
