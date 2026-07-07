@@ -169,7 +169,9 @@ NinjaPact 合约 (Injective EVM · chainId 1439)
 
 - [ ] Injective mainnet 部署  
 - [ ] 开放 Judge API · 任何第三方 agent 可调用 Judge 做验收  
-- [ ] Judge 成为 Injective agent 生态的公共验收基础设施  
+- [ ] Judge 成为 Injective agent 生态的公共验收基础设施
+- [ ] AI 目标拆解 — 用户描述长期意图，agent 自动拆解为可验收的每日子目标
+- [ ] 多元验证模式 — 延时摄影 · Apple Health · 网页行为追踪 · 自我申报 · GPS
 
 ## 现在就试
 

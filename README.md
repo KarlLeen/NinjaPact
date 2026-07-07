@@ -169,7 +169,9 @@ Every WeChat / Telegram group has someone taking 1–5% as a human middleman —
 
 - [ ] Injective mainnet deployment  
 - [ ] Open Judge API — any third-party agent can call Judge for acceptance  
-- [ ] Judge as shared verification infrastructure for the Injective agent ecosystem  
+- [ ] Judge as shared verification infrastructure for the Injective agent ecosystem
+- [ ] AI-assisted goal decomposition — user describes a long-term intention; agent breaks it into verifiable daily sub-goals
+- [ ] Expanded verification modes — Timelapse · Apple Health · Web Tracking · Self-Verify · GPS
 
 ## Try it
 
