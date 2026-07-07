@@ -154,6 +154,8 @@ Every WeChat / Telegram group has someone taking 1–5% as a human middleman —
 
 **Upside:** no fixed TAM forecast — as the Injective agent economy grows, every agent-to-agent job needs verification; Judge is already there.
 
+**New-to-crypto wedge:** Most NinjaPact users come for the commitment mechanic — not because they want crypto. Blockchain is the infrastructure that makes it trustworthy; Privy handles the wallet silently. Every habit user is a net-new address on Injective.
+
 ## Status & roadmap
 
 ### Shipped (verifiable on testnet)

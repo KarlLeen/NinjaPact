@@ -154,6 +154,8 @@ NinjaPact 合约 (Injective EVM · chainId 1439)
 
 **想象空间：** 不预测具体数字 — 随 Injective agent 经济增长，每一笔 agent 间活动需要验收，Judge 就在那里。
 
+**链外用户入口：** NinjaPact 的用户来这里是因为「承诺机制」，不是因为想用 crypto。区块链是让它可信的基础设施，Privy 静默处理钱包。每一个习惯用户都是 Injective 上的净新增地址。
+
 ## 进度与路线图
 
 ### 已完成 · 技术可验
