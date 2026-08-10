@@ -8,6 +8,8 @@
 
 <a id="english"></a>
 
+Demo vidoe[chinese] :https://drive.google.com/file/d/1LYb7mDNyNzgG7L0PmhJ3EqcqX1aMCGI9/view?usp=sharing 
+
 ## website
 
 **https://www.limlamleen.com** — Injective EVM testnet (chainId `1439`). Email / Google login via Privy; claim test mUSD in-app.
